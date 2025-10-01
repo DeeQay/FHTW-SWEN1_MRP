@@ -1,0 +1,32 @@
+package at.fhtw.swen1.mrp.entity;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+/**
+ * User Entity für Database Representation
+ * Zwischenabgabe - grundlegende User Data
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    private Long id;
+    private String username;
+    private String passwordHash; // TODO: Niemals Klartext-Passwörter speichern
+    private String email;
+    private LocalDateTime createdAt;
+
+    public User(String username, String passwordHash, String email) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.email = email;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // TODO: Validierungs-Methoden hinzufügen
+    // TODO: Password Verification Methode hinzufügen
+}
