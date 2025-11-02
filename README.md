@@ -1,5 +1,7 @@
 # Media Ratings Platform
 
+**GitHub Repository:** https://github.com/DeeQay/FHTW-SWEN1_MRP
+
 Eine REST-API für die Verwaltung von Medien (Filme, Serien, Bücher) mit Bewertungssystem.
 
 ## Überblick

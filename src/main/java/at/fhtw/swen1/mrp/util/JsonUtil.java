@@ -2,6 +2,7 @@ package at.fhtw.swen1.mrp.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * JSON-Hilfsklasse für Serialisierung und Deserialisierung
@@ -12,6 +13,8 @@ public class JsonUtil {
 
     static {
         // ObjectMapper konfigurieren
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         // TODO: Weitere Konfiguration für Produktion hinzufügen (Datumsformate, null-Behandlung, etc.)
     }

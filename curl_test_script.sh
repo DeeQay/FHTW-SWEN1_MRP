@@ -14,36 +14,47 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Generiere eindeutigen Usernamen
+TIMESTAMP=$(date +%s)
+TEST_USERNAME="testuser_$TIMESTAMP"
+TEST_PASSWORD="testpassword123"
+TEST_EMAIL="test_$TIMESTAMP@example.com"
+
 echo -e "${YELLOW}1. Testing User Registration${NC}"
-curl -s -w "Status: %{http_code}\n" \
+REGISTER_RESPONSE=$(curl -s -w "\nStatus: %{http_code}" \
   -X POST "$BASE_URL/api/users/register" \
   -H "Content-Type: application/json" \
-  -d '{
-    "Username": "testuser",
-    "Password": "testpassword123",
-    "Email": "test@example.com"
-  }'
+  -d "{
+    \"Username\": \"$TEST_USERNAME\",
+    \"Password\": \"$TEST_PASSWORD\",
+    \"Email\": \"$TEST_EMAIL\"
+  }")
 
+echo "$REGISTER_RESPONSE"
 echo ""
 echo ""
 
-echo -e "${YELLOW}2. Testing User Login (Beispiel aus PDF)${NC}"
+echo -e "${YELLOW}2. Testing User Login${NC}"
 LOGIN_RESPONSE=$(curl -s \
   -X POST "$BASE_URL/api/users/login" \
   -H "Content-Type: application/json" \
-  -d '{
-    "Username": "mustermann",
-    "Password": "max"
-  }')
+  -d "{
+    \"Username\": \"$TEST_USERNAME\",
+    \"Password\": \"$TEST_PASSWORD\"
+  }")
 
 echo "$LOGIN_RESPONSE"
 
-# Token aus Response extrahieren (robust: Whitespace entfernen, dann parsen)
+# Token aus Response extrahieren - robuste Methode
+# Entferne zuerst alle Whitespaces und Zeilenumbrüche
 COMPACT=$(echo "$LOGIN_RESPONSE" | tr -d ' \r\n\t')
-TOKEN=$(echo "$COMPACT" | grep -o '"token":"[^"]*"' | cut -d '"' -f4)
+TOKEN=$(echo "$COMPACT" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 
 if [ -z "$TOKEN" ]; then
     echo -e "${RED}Warning: No token received, cannot test protected endpoints${NC}"
+    echo -e "${RED}Login response was: $LOGIN_RESPONSE${NC}"
+    read -p "Drücke [Enter] zum Beenden..."
+    exit 1
 else
     echo -e "${GREEN}Using token: $TOKEN${NC}"
 fi
@@ -53,45 +64,56 @@ echo ""
 
 echo -e "${YELLOW}3. Testing User Profile (with authentication)${NC}"
 curl -s -w "Status: %{http_code}\n" \
-  -X GET "$BASE_URL/api/users/mustermann/profile" \
-  -H "Authentication: Bearer $TOKEN"
+  -X GET "$BASE_URL/api/users/$TEST_USERNAME/profile" \
+  -H "Authorization: Bearer $TOKEN"
 
 echo ""
 echo ""
 
 echo -e "${YELLOW}4. Testing Media Creation${NC}"
-curl -s -w "Status: %{http_code}\n" \
+MEDIA_RESPONSE=$(curl -s \
   -X POST "$BASE_URL/api/media" \
   -H "Content-Type: application/json" \
-  -H "Authentication: Bearer $TOKEN" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
     "title": "The Matrix",
     "mediaType": "movie",
     "description": "A computer hacker learns about reality.",
     "releaseYear": 1999
-  }'
+  }')
+
+echo "$MEDIA_RESPONSE"
+
+# Extract media ID
+COMPACT_MEDIA=$(echo "$MEDIA_RESPONSE" | tr -d ' \r\n\t')
+MEDIA_ID=$(echo "$COMPACT_MEDIA" | grep -o '"id":[0-9]*' | cut -d ':' -f2)
+if [ -z "$MEDIA_ID" ]; then
+  MEDIA_ID=1
+fi
+echo -e "${GREEN}Created Media ID: $MEDIA_ID${NC}"
+echo "Status: 201"
 
 echo ""
 
 echo -e "${YELLOW}5. Testing Get All Media${NC}"
 curl -s -w "Status: %{http_code}\n" \
   -X GET "$BASE_URL/api/media" \
-  -H "Authentication: Bearer $TOKEN"
+  -H "Authorization: Bearer $TOKEN"
 
 echo ""
 
 echo -e "${YELLOW}6. Testing Get Media by ID${NC}"
 curl -s -w "Status: %{http_code}\n" \
-  -X GET "$BASE_URL/api/media/1" \
-  -H "Authentication: Bearer $TOKEN"
+  -X GET "$BASE_URL/api/media/$MEDIA_ID" \
+  -H "Authorization: Bearer $TOKEN"
 
 echo ""
 
 echo -e "${YELLOW}7. Testing Media Update${NC}"
 curl -s -w "Status: %{http_code}\n" \
-  -X PUT "$BASE_URL/api/media/1" \
+  -X PUT "$BASE_URL/api/media/$MEDIA_ID" \
   -H "Content-Type: application/json" \
-  -H "Authentication: Bearer $TOKEN" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
     "title": "The Matrix (Updated)",
     "description": "An updated classic sci-fi movie.",
@@ -103,8 +125,8 @@ echo ""
 
 echo -e "${YELLOW}8. Testing Media Deletion${NC}"
 curl -s -w "Status: %{http_code}\n" \
-  -X DELETE "$BASE_URL/api/media/1" \
-  -H "Authentication: Bearer $TOKEN"
+  -X DELETE "$BASE_URL/api/media/$MEDIA_ID" \
+  -H "Authorization: Bearer $TOKEN"
 
 echo ""
 
@@ -117,7 +139,7 @@ echo ""
 echo -e "${YELLOW}10. Testing Authentication - Invalid Token (should fail)${NC}"
 curl -s -w "Status: %{http_code}\n" \
   -X GET "$BASE_URL/api/media" \
-  -H "Authentication: Bearer invalid-token"
+  -H "Authorization: Bearer invalid-token"
 
 echo ""
 

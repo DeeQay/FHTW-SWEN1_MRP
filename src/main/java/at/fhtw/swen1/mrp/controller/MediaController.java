@@ -64,11 +64,23 @@ public class MediaController {
             String requestBody = readRequestBody(exchange);
             MediaRequest request = JsonUtil.fromJson(requestBody, MediaRequest.class);
 
-            // TODO: Media-Erstellung
+            at.fhtw.swen1.mrp.entity.Media media = mediaService.createMedia(
+                request.getTitle(),
+                request.getDescription(),
+                request.getMediaType(),
+                request.getReleaseYear()
+            );
 
-            // Stub implementation
-            MediaResponse response = new MediaResponse(123L, request.getTitle(), request.getDescription(),
-                request.getMediaType(), request.getReleaseYear(), request.getGenres(), request.getAgeRestriction(), null);
+            MediaResponse response = new MediaResponse(
+                media.getId(),
+                media.getTitle(),
+                media.getDescription(),
+                media.getMediaType(),
+                media.getReleaseYear(),
+                request.getGenres(),
+                request.getAgeRestriction(),
+                media.getCreatedAt()
+            );
 
             sendResponse(exchange, 201, JsonUtil.toJson(response));
         } catch (Exception e) {
@@ -78,11 +90,14 @@ public class MediaController {
 
     private void handleGetAllMedia(HttpExchange exchange) throws IOException {
         try {
-            // TODO: Media-Abruf aus Database
+            List<at.fhtw.swen1.mrp.entity.Media> mediaList = mediaService.getAllMedia();
 
-            // Stub implementation
-            List<MediaResponse> mediaList = List.of(); // Leere Liste für intermediate
-            sendResponse(exchange, 200, JsonUtil.toJson(mediaList));
+            List<MediaResponse> responseList = mediaList.stream()
+                .map(m -> new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
+                    m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(), m.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
+
+            sendResponse(exchange, 200, JsonUtil.toJson(responseList));
         } catch (Exception e) {
             sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
         }
@@ -90,14 +105,22 @@ public class MediaController {
 
     private void handleGetMedia(HttpExchange exchange, String mediaId) throws IOException {
         try {
-            // TODO: Media nach ID aus Database abrufen
-            // TODO: Media not found Fälle behandeln
+            at.fhtw.swen1.mrp.entity.Media media = mediaService.getMediaById(Long.parseLong(mediaId));
 
-            // Stub implementation
-            MediaResponse response = new MediaResponse(Long.parseLong(mediaId), "Sample Movie",
-                "Sample Description", "Movie", 2024, null, null, null);
+            MediaResponse response = new MediaResponse(
+                media.getId(),
+                media.getTitle(),
+                media.getDescription(),
+                media.getMediaType(),
+                media.getReleaseYear(),
+                media.getGenres(),
+                media.getAgeRestriction(),
+                media.getCreatedAt()
+            );
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
+        } catch (IllegalArgumentException e) {
+            sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         } catch (Exception e) {
             sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         }
@@ -108,15 +131,28 @@ public class MediaController {
             String requestBody = readRequestBody(exchange);
             MediaRequest request = JsonUtil.fromJson(requestBody, MediaRequest.class);
 
-            // TODO: Media Update in Database implementieren
-            // TODO: Authorization prüfen (nur Owner kann updaten)
+            at.fhtw.swen1.mrp.entity.Media media = mediaService.updateMedia(
+                Long.parseLong(mediaId),
+                request.getTitle(),
+                request.getDescription(),
+                request.getMediaType(),
+                request.getReleaseYear()
+            );
 
-            // Stub implementation
-            MediaResponse response = new MediaResponse(Long.parseLong(mediaId), request.getTitle(),
-                request.getDescription(), request.getMediaType(), request.getReleaseYear(), request.getGenres(),
-                request.getAgeRestriction(), null);
+            MediaResponse response = new MediaResponse(
+                media.getId(),
+                media.getTitle(),
+                media.getDescription(),
+                media.getMediaType(),
+                media.getReleaseYear(),
+                request.getGenres(),
+                request.getAgeRestriction(),
+                media.getCreatedAt()
+            );
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
+        } catch (IllegalArgumentException e) {
+            sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         } catch (Exception e) {
             sendResponse(exchange, 400, "{\"error\":\"Update failed: " + e.getMessage() + "\"}");
         }
@@ -124,11 +160,10 @@ public class MediaController {
 
     private void handleDeleteMedia(HttpExchange exchange, String mediaId) throws IOException {
         try {
-            // TODO: Media Delete aus Database implementieren
-            // TODO: Authorization prüfen (nur Owner kann löschen)
-
-            // Stub implementation
+            mediaService.deleteMedia(Long.parseLong(mediaId));
             sendResponse(exchange, 204, "");
+        } catch (IllegalArgumentException e) {
+            sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         } catch (Exception e) {
             sendResponse(exchange, 400, "{\"error\":\"Delete failed\"}");
         }
@@ -151,7 +186,7 @@ public class MediaController {
     }
 
     private boolean isAuthenticated(HttpExchange exchange) {
-        String authHeader = exchange.getRequestHeaders().getFirst("Authentication");
+        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return false;
         }

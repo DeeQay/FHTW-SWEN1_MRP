@@ -1,74 +1,67 @@
 package at.fhtw.swen1.mrp.service;
 
-import at.fhtw.swen1.mrp.dao.MediaDAO;
 import at.fhtw.swen1.mrp.entity.Media;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MediaService verwaltet Geschäftslogik für Media-Operationen
- * Zwischenabgabe - grundlegende CRUD Operationen mit Stubs
+ * Intermediate: In-Memory Storage
  */
 public class MediaService {
-    private final MediaDAO mediaDAO;
-
-    public MediaService() {
-        // TODO: Mit ordnungsgemäßer Dependency Injection in final submission initialisieren
-        this.mediaDAO = new MediaDAO();
-    }
+    private static final Map<Long, Media> mediaStore = new ConcurrentHashMap<>();
+    private static long mediaIdCounter = 1L;
 
     public Media createMedia(String title, String description, String mediaType, Integer releaseYear) {
-        // TODO: Ordnungsgemäße Validierung implementieren
-        // TODO: Auf doppelte Titel prüfen
-        // TODO: Media Type und Release Year validieren
+        Media media = new Media();
+        media.setId(mediaIdCounter++);
+        media.setTitle(title);
+        media.setDescription(description);
+        media.setMediaType(mediaType);
+        media.setReleaseYear(releaseYear);
+        media.setCreatedAt(LocalDateTime.now());
 
-        // Stub implementation
-        Media media = new Media(title, description, mediaType, releaseYear);
-
-        // TODO: mediaDAO.create(media) aufrufen
+        mediaStore.put(media.getId(), media);
         return media;
     }
 
     public List<Media> getAllMedia() {
-        // TODO: Tatsächlichen Database-Abruf implementieren
-        // TODO: Pagination Support hinzufügen
-        // TODO: Filtering-Funktionen hinzufügen
-
-        // Stub implementation - leere Liste für jetzt zurückgeben
-        return List.of();
+        return new ArrayList<>(mediaStore.values());
     }
 
     public Media getMediaById(Long id) {
-        // TODO: Database-Abruf nach ID implementieren
-        // TODO: Media not found behandeln
-
-        // Stub implementation
-        Media media = new Media("Media " + id, "Beschreibung", "Movie", 2024);
-        media.setId(id);
+        Media media = mediaStore.get(id);
+        if (media == null) {
+            throw new IllegalArgumentException("Media nicht gefunden");
+        }
         return media;
     }
 
     public Media updateMedia(Long id, String title, String description, String mediaType, Integer releaseYear) {
-        // TODO: Media Update in Database implementieren
-        // TODO: Validieren dass Media existiert
-        // TODO: Input data validieren
+        Media media = mediaStore.get(id);
+        if (media == null) {
+            throw new IllegalArgumentException("Media nicht gefunden");
+        }
 
-        // Stub implementation
-        Media media = new Media(title, description, mediaType, releaseYear);
-        media.setId(id);
+        media.setTitle(title);
+        media.setDescription(description);
+        media.setMediaType(mediaType);
+        media.setReleaseYear(releaseYear);
 
+        mediaStore.put(id, media);
         return media;
     }
 
     public boolean deleteMedia(Long id) {
-        // TODO: Media Delete aus Database implementieren
-        // TODO: Validieren dass Media existiert
-        // TODO: Cascade deletes für Related data behandeln
-
-        // Stub implementation
+        if (!mediaStore.containsKey(id)) {
+            throw new IllegalArgumentException("Media nicht gefunden");
+        }
+        mediaStore.remove(id);
         return true;
     }
-
-    // TODO: Methoden für Search, Filtering, Rating hinzufügen
 }
 

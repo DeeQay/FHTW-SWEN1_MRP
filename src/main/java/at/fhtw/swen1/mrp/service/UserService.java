@@ -1,36 +1,44 @@
 package at.fhtw.swen1.mrp.service;
 
-import at.fhtw.swen1.mrp.dao.UserDAO;
 import at.fhtw.swen1.mrp.entity.User;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * UserService verwaltet User-bezogene Business Logic
- * Zwischenabgabe - grundlegende User Management Funktionen
+ * Intermediate: In-Memory Storage
  */
 public class UserService {
-    private final UserDAO userDAO;
+    private static final Map<String, User> userStore = new ConcurrentHashMap<>();
+    private static long userIdCounter = 1L;
 
-    public UserService(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    public UserService() {
+        // Default constructor
     }
 
-    public User registerUser(String username, String password, String email) throws SQLException {
-        if (userDAO.findByUsername(username).isPresent()) {
+    public User registerUser(String username, String password, String email) {
+        if (userStore.containsKey(username)) {
             throw new IllegalArgumentException("Username bereits vorhanden");
         }
 
         String hashedPassword = hashPassword(password);
-        User user = new User(username, hashedPassword, email);
-        userDAO.create(user);
+        User user = new User();
+        user.setId(userIdCounter++);
+        user.setUsername(username);
+        user.setPasswordHash(hashedPassword);
+        user.setEmail(email);
+        user.setCreatedAt(LocalDateTime.now());
+
+        userStore.put(username, user);
         return user;
     }
 
-    public User loginUser(String username, String password) throws SQLException {
-        User user = userDAO.findByUsername(username).orElse(null);
+    public User loginUser(String username, String password) {
+        User user = userStore.get(username);
         if (user == null) {
             throw new IllegalArgumentException("Ungültige Credentials");
         }
@@ -43,8 +51,8 @@ public class UserService {
         return user;
     }
 
-    public User getUserByUsername(String username) throws SQLException {
-        return userDAO.findByUsername(username).orElse(null);
+    public User getUserByUsername(String username) {
+        return userStore.get(username);
     }
 
     private String hashPassword(String password) {

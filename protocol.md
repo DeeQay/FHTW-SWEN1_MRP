@@ -1,113 +1,154 @@
-# Media Ratings Platform - Development Protocol
-## Intermediate Submission
+# Entwicklungsprotokoll - Media Ratings Platform
+## Zwischenabgabe SWEN1
 
-### Architekturentscheidungen
+## Projektbeschreibung
 
-#### 1. HTTP-Server Implementation
-- **Entscheidung**: com.sun.net.httpserver.HttpServer verwenden
-- **Grund**: Erfüllt MRP-Vorgabe (kein Spring/Jakarta EE erlaubt)
-- **Alternative**: Eigene Socket-Implementierung (zu komplex für Intermediate)
+Dieses Projekt implementiert einen REST-basierten HTTP-Server für eine Media Ratings Platform. Die Zwischenabgabe umfasst Benutzerregistrierung, Login mit Token-Authentifizierung und grundlegende CRUD-Operationen für Medieneinträge.
 
-#### 2. Authentication Strategy
-- **Entscheidung**: Einfacher Bearer-Token mit In-Memory Store
-- **Grund**: Intermediate-Anforderung, JWT kommt in Final
-- **Sicherheitsrisiko**: Tokens werden nicht verschlüsselt/validiert
+## Technische Schritte und Architekturentscheidungen
 
-#### 3. Database Layer
-- **Entscheidung**: DAO-Pattern mit Interface-Stubs
-- **Grund**: Vorbereitung für Final, aber Database-Ops nicht in Intermediate nötig
-- **Implementierung**: UnsupportedOperationException mit TODO-Kommentaren
+### Architektur
 
-#### 4. JSON Processing
-- **Entscheidung**: Jackson ObjectMapper
-- **Grund**: Explizit erlaubte Bibliothek laut Vorgaben
-- **Vorteil**: Annotation-basierte Serialisierung
+Das Projekt folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten:
 
-### Testplan
+- Controller Layer: Verarbeitung der HTTP-Requests und Responses
+- Service Layer: Geschäftslogik und Validierung
+- Data Access Layer: Datenbankzugriff (vorbereitet für PostgreSQL)
+- Entity Layer: Domänenmodelle (User, Media, Rating)
 
-#### Unit Tests (Intermediate Scope)
-- [x] JsonUtil Serialization/Deserialization
-- [x] Authentication Middleware Token Handling
-- [ ] Service Layer Business Logic (Stubs)
-- [ ] DTO Validation (TODO für Final)
+### HTTP-Server
 
-#### Integration Tests
-- [ ] HTTP Endpoint Tests (erfordern Server-Start)
-- [ ] Database Integration (TODO für Final)
-- [ ] End-to-End Workflows (TODO für Final)
+Technologie: Java SE HttpServer (com.sun.net.httpserver.HttpServer)
 
-#### Manual Testing
-- [x] cURL Script für alle Intermediate Endpoints
-- [x] Postman Collection (falls vorhanden)
-- [ ] Load Testing (TODO für Final)
+Entscheidung: Der Java SE HttpServer erfüllt die Anforderung, keine Web-Frameworks wie Spring oder JSP zu verwenden. Er ist Teil der Java-Standardbibliothek und ermöglicht die Implementierung eines reinen HTTP-Servers.
 
-### Probleme und Lösungen
+Implementierung: Der Server lauscht auf Port 8080 und nutzt einen Thread Pool für parallele Request-Verarbeitung.
 
-#### Problem 1: Maven/Java nicht im PATH
-- **Problem**: Build-Tools nicht verfügbar in Entwicklungsumgebung
-- **Lösung**: Dokumentation für manuellen Setup, IDE-basierte Builds
-- **Status**: Dokumentiert, aber nicht blockierend für Code-Review
+### Authentifizierung
 
-#### Problem 2: Password Klartext-Speicherung
-- **Problem**: Sicherheitsvorgabe verletzt
-- **Lösung**: TODO-Kommentare für Hashing, Intermediate akzeptiert Stubs
-- **Status**: Korrekt für Intermediate-Scope
+Implementierung: Token-basierte Authentifizierung mit Bearer Token im Authorization-Header
 
-#### Problem 3: Fehlende Database-Verbindung
-- **Problem**: DAO-Methoden nicht implementiert
-- **Lösung**: UnsupportedOperationException mit klaren TODOs
-- **Status**: Korrekt für Intermediate-Scope
+Funktionsweise: Nach erfolgreichem Login erhält der Benutzer einen Token (Format: "username-mrpToken"). Dieser Token wird bei allen geschützten Endpoints im Header "Authentication: Bearer <token>" mitgesendet und validiert.
 
-### Zeitaufwand (geschätzt)
+Token-Speicherung: In-Memory Map im AuthService (ausreichend für Zwischenabgabe)
 
-| Task | Geplant | Tatsächlich | Delta |
-|------|---------|-------------|-------|
-| HTTP Server Setup | 4h | 3h | -1h |
-| Controller Implementation | 6h | 5h | -1h |
-| DTO/Entity Design | 3h | 2h | -1h |
-| Authentication Middleware | 4h | 3h | -1h |
-| Documentation | 2h | 3h | +1h |
-| **Total** | **19h** | **16h** | **-3h** |
+### Passwort-Sicherheit
 
-### Nächste Schritte (Final Submission)
+Implementierung: SHA-256 Hashing vor Speicherung
 
-#### Must Have
-1. Implementierung aller DAO-Methoden mit PostgreSQL
-2. JWT-basierte Authentication mit Expiration
-3. Password-Hashing (BCrypt oder ähnlich)
-4. Input-Validation und Error-Handling
-5. Comprehensive Unit/Integration Tests
+Die UserService Klasse hasht alle Passwörter mit SHA-256 vor der Weitergabe an die Datenschicht. Klartext-Speicherung wird verhindert.
 
-#### Should Have
-1. Ratings/Reviews System Implementation
-2. Advanced Filtering und Search
-3. API Documentation (OpenAPI/Swagger)
-4. Performance optimierung
-5. Security Hardening
+### JSON-Verarbeitung
 
-#### Could Have
-1. Rate Limiting
-2. Caching Layer
-3. Monitoring/Logging
-4. Database Migrations
-5. Docker Multi-Stage Builds
+Bibliothek: Jackson ObjectMapper
 
----
+Jackson wird für die Serialisierung und Deserialisierung von Java-Objekten zu JSON verwendet. Die DTOs nutzen Jackson-Annotationen für die korrekte Feldabbildung.
 
-### Git Repository
+### Routing
 
-**Repository URL**: [Bitte Git Repository URL hier einfügen]
+Implementierung: Manuelle Pfad-Analyse in den Controllern
 
-**Hinweis**: Stellen Sie sicher, dass das Repository:
-- Alle Source-Dateien enthält
-- Keine sensiblen Daten (Credentials, API Keys) enthält
-- Eine aussagekräftige README.md hat
-- Commit-History zeigt den Entwicklungsprozess
+Da der Java SE HttpServer kein eingebautes Routing bietet, werden die Pfade manuell geparst. Pfad-Parameter (z.B. /api/media/{id}) werden durch String-Operationen extrahiert.
 
+### Datenschicht
 
+Status: DAO-Pattern mit Stub-Implementierungen
 
-## Final Notes
-All requirements implemented.
+UserDAO und MediaDAO sind als Klassen vorhanden, werfen aber UnsupportedOperationException. Die Struktur ist vorbereitet für die spätere PostgreSQL-Integration mit Prepared Statements.
 
-## Final Notes
-All requirements implemented.
+## Implementierte Komponenten
+
+### REST Endpoints
+
+Benutzer:
+- POST /api/users/register - Registrierung neuer Benutzer
+- POST /api/users/login - Login und Token-Generierung
+- GET /api/users/{username}/profile - Profil-Abfrage (authentifiziert)
+
+Media:
+- POST /api/media - Neuen Medieneintrag erstellen (authentifiziert)
+- GET /api/media - Alle Medieneinträge abrufen (authentifiziert)
+- GET /api/media/{id} - Einzelnen Medieneintrag abrufen (authentifiziert)
+- PUT /api/media/{id} - Medieneintrag aktualisieren (authentifiziert)
+- DELETE /api/media/{id} - Medieneintrag löschen (authentifiziert)
+
+### Modellklassen
+
+- User: id, username, passwordHash, email, createdAt
+- Media: id, title, description, mediaType, releaseYear, genres, ageRestriction
+- Rating: id, userId, mediaId, stars, comment (Modellklasse vorhanden für spätere Implementierung)
+
+### DTOs
+
+Request: RegisterRequest, LoginRequest, MediaRequest
+Response: LoginResponse, UserProfileResponse, MediaResponse
+
+## Unit Tests und Testabdeckung
+
+### Implementierte Tests
+
+JsonUtilTest: Testet JSON-Serialisierung und -Deserialisierung
+- Warum: Kritisch für korrekte API-Kommunikation
+- Abdeckung: Serialisierung von Objekten zu JSON und zurück
+
+UserServiceHashTest: Testet Passwort-Hashing
+- Warum: Sicherheitsrelevant, Passwörter dürfen nicht im Klartext gespeichert werden
+- Abdeckung: SHA-256 Hash-Generierung und -Konsistenz
+
+Entity-Tests (UserTest, MediaTest, RatingTest): Testen Getter, Setter und Builder
+- Warum: Validierung der Modellklassen-Funktionalität
+- Abdeckung: Objekterzeugung und Feldmanipulation
+
+AuthServiceTest: Testet Token-Generierung und -Validierung
+- Warum: Kern der Authentifizierung
+- Abdeckung: Token-Erzeugung, Speicherung und Validierung
+
+### Integrationstests
+
+Bereitgestellt: cURL-Skripte (curl_tests.sh, test-api.ps1) und Postman Collection
+- Demonstrieren alle implementierten Endpoints
+- Testen Authentication-Flow
+- Prüfen HTTP-Statuscodes
+
+## Aufgetretene Probleme und Lösungen
+
+### Problem: Routing ohne Framework
+
+Herausforderung: Java SE HttpServer bietet kein automatisches Routing wie moderne Frameworks.
+
+Lösung: Manuelle Implementierung der Pfad-Analyse in jedem Controller. Pfad-Parameter werden durch String-Split und Pattern-Matching extrahiert. Die Lösung ist funktional und erfüllt die Anforderungen der Zwischenabgabe.
+
+### Problem: Token-Persistenz
+
+Herausforderung: In-Memory Token-Speicherung geht bei Server-Neustart verloren.
+
+Lösung: Für die Zwischenabgabe akzeptabel. Die Architektur erlaubt späteren Austausch durch datenbankbasierte Lösung ohne Änderung der Controller.
+
+### Problem: Datenbankintegration
+
+Herausforderung: Vollständige PostgreSQL-Integration ist umfangreich.
+
+Lösung: DAO-Stubs mit UnsupportedOperationException und TODO-Kommentaren zeigen die geplante Architektur. Die Controller und Services sind bereits auf die spätere Integration vorbereitet.
+
+## Zeitaufwand
+
+| Bereich | Tätigkeit | Stunden | Details |
+|---------|-----------|---------|---------|
+| **Server** | HTTP Server Setup | 3h | Port-Konfiguration, Threading, Request-Handling |
+| **Controller** | User Controller | 2.5h | Register, Login, Profile Endpoints |
+| **Controller** | Media Controller | 2.5h | CRUD Endpoints, Routing-Logik |
+| **Service** | User Service | 2h | Password-Hashing, Validierung |
+| **Service** | Media Service | 2h | Business-Logik, Validierung |
+| **Auth** | Token-System | 3h | Token-Generierung, Speicherung, Validierung |
+| **Model** | Entities & DTOs | 2h | User, Media, Request/Response DTOs |
+| **DAO** | DAO Stubs | 1h | Interface-Design, Stub-Implementierung |
+| **Tests** | Unit Tests | 2h | Service Tests, Util Tests |
+| **Tests** | API Tests | 1h | curl-Skripte, Postman Collection |
+| **Doku** | README & Protocol | 2h | Dokumentation, OpenAPI Spec |
+| | **GESAMT** | **23h** | |
+
+## Git Repository
+
+Repository URL: https://github.com/DeeQay/FHTW-SWEN1_MRP
+
+Das Repository enthält den vollständigen Quellcode mit Maven-Konfiguration, Docker Compose Setup für PostgreSQL und allen Testskripten. Die Commit-History dokumentiert den Entwicklungsprozess chronologisch.

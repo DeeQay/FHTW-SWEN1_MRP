@@ -1,507 +1,267 @@
 {
   "info": {
-    "name": "MRP Full API Collection (COMPLETE + FIXED)",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "name": "Media Ratings Platform",
+    "description": "API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
   "item": [
     {
-      "name": "Auth",
-      "item": [
+      "name": "1. Register User",
+      "event": [
         {
-          "name": "Register User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/users/register",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "register"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Login User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/users/login",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "login"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
-            }
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Username\": \"testuser\",\n  \"Password\": \"test123\",\n  \"Email\": \"test@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "register"]
+        }
+      }
     },
     {
-      "name": "User",
-      "item": [
+      "name": "2. Login User",
+      "event": [
         {
-          "name": "Get Profile",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/users/1/profile",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "profile"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Rating History",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/users/1/ratings",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "ratings"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Favorites",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/users/1/favorites",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "favorites"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Profile",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "http://localhost:8080/api/users/1/profile",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "profile"
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user1@example.com\",\n  \"favoriteGenre\": \"sci-fi\"\n}"
-            }
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "pm.collectionVariables.set(\"token\", jsonData.token);"
+            ]
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Username\": \"testuser\",\n  \"Password\": \"test123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "login"]
+        }
+      }
     },
     {
-      "name": "Media",
-      "item": [
+      "name": "3. Get User Profile",
+      "event": [
         {
-          "name": "Create Media Entry",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/media",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Inception\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 12\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete Media Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Search & Filter Media",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/media?title=incep&genre=sci-fi&sortBy=score",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media"
-              ],
-              "query": [
-                {
-                  "key": "title",
-                  "value": "incep"
-                },
-                {
-                  "key": "genre",
-                  "value": "sci-fi"
-                },
-                {
-                  "key": "sortBy",
-                  "value": "score"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Media Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1"
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Inception Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"action\"\n  ],\n  \"ageRestriction\": 16\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Media by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1"
-              ]
-            },
-            "header": []
-          }
-        },
-        {
-          "name": "Full Search & Filter",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/media?title=inception&genre=sci-fi&mediaType=movie&releaseYear=2010&ageRestriction=12&rating=4&sortBy=title",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media?title=inception&genre=sci-fi&mediaType=movie&releaseYear=2010&ageRestriction=12&rating=4&sortBy=title"
-              ]
-            },
-            "header": []
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/testuser/profile",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "testuser", "profile"]
+        }
+      }
     },
     {
-      "name": "Rating",
-      "item": [
+      "name": "4. Create Media",
+      "event": [
         {
-          "name": "Rate Media",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/media/1/rate",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1",
-                "rate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"stars\": 5,\n  \"comment\": \"Amazing movie!\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Like Rating",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "http://localhost:8080/api/ratings/1/like",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "ratings",
-                "1",
-                "like"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Rating",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "http://localhost:8080/api/ratings/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "ratings",
-                "1"
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"stars\": 4,\n  \"comment\": \"Updated comment\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Confirm Rating Comment",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "http://localhost:8080/api/ratings/1/confirm",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "ratings",
-                "1",
-                "confirm"
-              ]
-            },
-            "header": []
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"The Matrix\",\n  \"description\": \"A computer hacker learns about reality\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/media",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media"]
+        }
+      }
     },
     {
-      "name": "Favorites",
-      "item": [
+      "name": "5. Get All Media",
+      "event": [
         {
-          "name": "Mark as Favorite",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1/favorite",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1",
-                "favorite"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Unmark as Favorite",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1/favorite",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1",
-                "favorite"
-              ]
-            }
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media"]
+        }
+      }
     },
     {
-      "name": "Recommendation",
-      "item": [
-        {
-          "name": "Get Recommendations by Genre",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/users/1/recommendations?type=genre",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "recommendations"
-              ],
-              "query": [
-                {
-                  "key": "type",
-                  "value": "genre"
-                }
-              ]
-            }
+      "name": "6. Get Media by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
           }
-        },
-        {
-          "name": "Get Recommendations by Content",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/users/1/recommendations?type=content",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "recommendations"
-              ],
-              "query": [
-                {
-                  "key": "type",
-                  "value": "content"
-                }
-              ]
-            }
-          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "1"]
         }
-      ]
+      }
     },
     {
-      "name": "Leaderboard",
-      "item": [
+      "name": "7. Update Media",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/media/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "1"]
+        }
+      }
+    },
+    {
+      "name": "8. Delete Media",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "1"]
+        }
+      }
+    },
+    {
+      "name": "9. Unauthorized Access",
+      "event": [
         {
-          "name": "Get Leaderboard",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/leaderboard",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "leaderboard"
-              ]
-            }
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/media",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media"]
+        }
+      }
     }
   ]
 }
+
