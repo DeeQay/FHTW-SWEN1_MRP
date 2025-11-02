@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * UserService verwaltet User-bezogene Business Logic
- * Intermediate: In-Memory Storage
  */
 public class UserService {
     private static final Map<String, User> userStore = new ConcurrentHashMap<>();

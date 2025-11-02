@@ -52,10 +52,10 @@ public class UserController {
             }
 
             String response = String.format(
-                "{\"username\":\"%s\",\"email\":\"%s\",\"createdAt\":\"%s\"}",
-                user.getUsername(),
-                user.getEmail() != null ? user.getEmail() : "",
-                user.getCreatedAt()
+                    "{\"username\":\"%s\",\"email\":\"%s\",\"createdAt\":\"%s\"}",
+                    user.getUsername(),
+                    user.getEmail() != null ? user.getEmail() : "",
+                    user.getCreatedAt()
             );
 
             sendResponse(exchange, 200, response);

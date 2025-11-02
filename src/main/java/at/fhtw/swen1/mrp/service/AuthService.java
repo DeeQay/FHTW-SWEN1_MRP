@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * AuthService verwaltet Authentifizierung und Token-Management
- * Zwischenabgabe - einfacher In-Memory Token Store
  */
 public class AuthService {
     // TODO: Mit ordnungsgemäßem Token Store (Redis/Database) in final submission ersetzen

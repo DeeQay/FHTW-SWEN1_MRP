@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 
 /**
  * User Entity für Database Representation
- * Zwischenabgabe - grundlegende User Data
  */
 @Data
 @NoArgsConstructor

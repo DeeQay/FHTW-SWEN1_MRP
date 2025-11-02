@@ -6,7 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * JSON-Hilfsklasse für Serialisierung und Deserialisierung
- * Verwendet Jackson für JSON-Verarbeitung (erlaubte Bibliothek)
+ * Verwendet Jackson für JSON-Verarbeitung
  */
 public class JsonUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();

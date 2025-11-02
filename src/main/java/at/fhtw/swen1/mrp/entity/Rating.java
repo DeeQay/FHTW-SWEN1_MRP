@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 
 /**
  * Rating Entity für Database Representation
- * Intermediate Submission - grundlegende Rating Data
  */
 @Data
 @NoArgsConstructor

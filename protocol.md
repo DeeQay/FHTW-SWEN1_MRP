@@ -48,7 +48,24 @@ Jackson wird für die Serialisierung und Deserialisierung von Java-Objekten zu J
 
 Implementierung: Manuelle Pfad-Analyse in den Controllern
 
-Da der Java SE HttpServer kein eingebautes Routing bietet, werden die Pfade manuell geparst. Pfad-Parameter (z.B. /api/media/{id}) werden durch String-Operationen extrahiert.
+### SOLID-Prinzipien Nachweis
+
+**Single Responsibility Principle (SRP):**
+- Jede Klasse hat genau eine Verantwortlichkeit
+- Controller: nur HTTP-Handling
+- Service: nur Business-Logik
+- DAO: nur Datenbankzugriff
+- Entity: nur Datenstrukturen
+
+**Open/Closed Principle:**
+- DTOs erlauben Erweiterung ohne Entity-Änderung
+- Service-Layer kann erweitert werden ohne Controller-Änderung
+
+**Dependency Inversion Principle (teilweise):**
+- Controller hängen von Service-Klassen ab (nicht direkt von DAOs)
+- Layered Architecture ermöglicht Austausch der Implementierungen
+
+**Hinweis für Final-Abgabe:** Service-Interfaces sollten noch implementiert werden für vollständige Dependency Inversion.
 
 ### Datenschicht
 
@@ -56,10 +73,12 @@ Status: DAO-Pattern mit Stub-Implementierungen
 
 UserDAO und MediaDAO sind als Klassen vorhanden, werfen aber UnsupportedOperationException. Die Struktur ist vorbereitet für die spätere PostgreSQL-Integration mit Prepared Statements.
 
+  - Query-Parameter: `format` (basic|detailed), `includeEmail` (true|false)
 ## Implementierte Komponenten
 
 ### REST Endpoints
 
+  - Query-Parameter: `type` (Medientyp-Filter), `year` (Jahresfilter), `limit` (Ergebnis-Limit)
 Benutzer:
 - POST /api/users/register - Registrierung neuer Benutzer
 - POST /api/users/login - Login und Token-Generierung

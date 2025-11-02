@@ -9,7 +9,6 @@ import java.util.List;
 
 /**
  * Media Entity für Database Representation
- * Zwischenabgabe - grundlegende Media Data
  */
 @Data
 @NoArgsConstructor

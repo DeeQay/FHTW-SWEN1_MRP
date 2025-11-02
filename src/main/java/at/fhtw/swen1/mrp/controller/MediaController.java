@@ -65,21 +65,21 @@ public class MediaController {
             MediaRequest request = JsonUtil.fromJson(requestBody, MediaRequest.class);
 
             at.fhtw.swen1.mrp.entity.Media media = mediaService.createMedia(
-                request.getTitle(),
-                request.getDescription(),
-                request.getMediaType(),
-                request.getReleaseYear()
+                    request.getTitle(),
+                    request.getDescription(),
+                    request.getMediaType(),
+                    request.getReleaseYear()
             );
 
             MediaResponse response = new MediaResponse(
-                media.getId(),
-                media.getTitle(),
-                media.getDescription(),
-                media.getMediaType(),
-                media.getReleaseYear(),
-                request.getGenres(),
-                request.getAgeRestriction(),
-                media.getCreatedAt()
+                    media.getId(),
+                    media.getTitle(),
+                    media.getDescription(),
+                    media.getMediaType(),
+                    media.getReleaseYear(),
+                    request.getGenres(),
+                    request.getAgeRestriction(),
+                    media.getCreatedAt()
             );
 
             sendResponse(exchange, 201, JsonUtil.toJson(response));
@@ -93,9 +93,9 @@ public class MediaController {
             List<at.fhtw.swen1.mrp.entity.Media> mediaList = mediaService.getAllMedia();
 
             List<MediaResponse> responseList = mediaList.stream()
-                .map(m -> new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
-                    m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(), m.getCreatedAt()))
-                .collect(java.util.stream.Collectors.toList());
+                    .map(m -> new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
+                            m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(), m.getCreatedAt()))
+                    .collect(java.util.stream.Collectors.toList());
 
             sendResponse(exchange, 200, JsonUtil.toJson(responseList));
         } catch (Exception e) {
@@ -108,14 +108,14 @@ public class MediaController {
             at.fhtw.swen1.mrp.entity.Media media = mediaService.getMediaById(Long.parseLong(mediaId));
 
             MediaResponse response = new MediaResponse(
-                media.getId(),
-                media.getTitle(),
-                media.getDescription(),
-                media.getMediaType(),
-                media.getReleaseYear(),
-                media.getGenres(),
-                media.getAgeRestriction(),
-                media.getCreatedAt()
+                    media.getId(),
+                    media.getTitle(),
+                    media.getDescription(),
+                    media.getMediaType(),
+                    media.getReleaseYear(),
+                    media.getGenres(),
+                    media.getAgeRestriction(),
+                    media.getCreatedAt()
             );
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
@@ -132,22 +132,22 @@ public class MediaController {
             MediaRequest request = JsonUtil.fromJson(requestBody, MediaRequest.class);
 
             at.fhtw.swen1.mrp.entity.Media media = mediaService.updateMedia(
-                Long.parseLong(mediaId),
-                request.getTitle(),
-                request.getDescription(),
-                request.getMediaType(),
-                request.getReleaseYear()
+                    Long.parseLong(mediaId),
+                    request.getTitle(),
+                    request.getDescription(),
+                    request.getMediaType(),
+                    request.getReleaseYear()
             );
 
             MediaResponse response = new MediaResponse(
-                media.getId(),
-                media.getTitle(),
-                media.getDescription(),
-                media.getMediaType(),
-                media.getReleaseYear(),
-                request.getGenres(),
-                request.getAgeRestriction(),
-                media.getCreatedAt()
+                    media.getId(),
+                    media.getTitle(),
+                    media.getDescription(),
+                    media.getMediaType(),
+                    media.getReleaseYear(),
+                    request.getGenres(),
+                    request.getAgeRestriction(),
+                    media.getCreatedAt()
             );
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
