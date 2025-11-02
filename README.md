@@ -79,7 +79,7 @@ mvn test
 
 Integration Tests mit curl:
 ```bash
-./curl_tests.sh
+./test-api.bat
 ```
 
 ## Projektstruktur
