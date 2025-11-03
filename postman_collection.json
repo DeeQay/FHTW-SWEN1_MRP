@@ -141,7 +141,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"The Matrix\",\n  \"description\": \"A computer hacker learns about reality\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999\n}"
+          "raw": "{\n  \"title\": \"The Matrix\",\n  \"description\": \"A computer hacker learns about reality\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999,\n  \"genres\": [\"Action\", \"Sci-Fi\"],\n  \"ageRestriction\": \"PG-13\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/media",
@@ -181,6 +181,18 @@
     },
     {
       "name": "6. Get Media by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "GET",
         "header": [
@@ -198,6 +210,18 @@
     },
     {
       "name": "7. Update Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "PUT",
         "header": [
@@ -212,7 +236,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999\n}"
+          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999,\n  \"genres\": [\"Action\", \"Sci-Fi\", \"Thriller\"],\n  \"ageRestriction\": \"R\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/media/1",
@@ -223,6 +247,18 @@
     },
     {
       "name": "8. Delete Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200 or 204\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+              "});"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "DELETE",
         "header": [
@@ -239,7 +275,7 @@
       }
     },
     {
-      "name": "9. Unauthorized Access",
+      "name": "9. Unauthorized Access Test",
       "event": [
         {
           "listen": "test",
