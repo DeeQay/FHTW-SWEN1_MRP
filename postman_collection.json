@@ -236,7 +236,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999,\n  \"genres\": [\"Action\", \"Sci-Fi\", \"Thriller\"],\n  \"ageRestriction\": \"R\"\n}"
+          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/media/1",

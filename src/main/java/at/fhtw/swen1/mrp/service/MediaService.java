@@ -16,13 +16,15 @@ public class MediaService {
     private static final Map<Long, Media> mediaStore = new ConcurrentHashMap<>();
     private static long mediaIdCounter = 1L;
 
-    public Media createMedia(String title, String description, String mediaType, Integer releaseYear) {
+    public Media createMedia(String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction) {
         Media media = new Media();
         media.setId(mediaIdCounter++);
         media.setTitle(title);
         media.setDescription(description);
         media.setMediaType(mediaType);
         media.setReleaseYear(releaseYear);
+        media.setGenres(genres);
+        media.setAgeRestriction(ageRestriction);
         media.setCreatedAt(LocalDateTime.now());
 
         mediaStore.put(media.getId(), media);
@@ -41,7 +43,7 @@ public class MediaService {
         return media;
     }
 
-    public Media updateMedia(Long id, String title, String description, String mediaType, Integer releaseYear) {
+    public Media updateMedia(Long id, String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction) {
         Media media = mediaStore.get(id);
         if (media == null) {
             throw new IllegalArgumentException("Media nicht gefunden");
@@ -51,6 +53,8 @@ public class MediaService {
         media.setDescription(description);
         media.setMediaType(mediaType);
         media.setReleaseYear(releaseYear);
+        media.setGenres(genres);
+        media.setAgeRestriction(ageRestriction);
 
         mediaStore.put(id, media);
         return media;

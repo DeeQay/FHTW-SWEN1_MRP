@@ -68,7 +68,9 @@ public class MediaController {
                     request.getTitle(),
                     request.getDescription(),
                     request.getMediaType(),
-                    request.getReleaseYear()
+                    request.getReleaseYear(),
+                    request.getGenres(),
+                    request.getAgeRestriction()
             );
 
             MediaResponse response = new MediaResponse(
@@ -77,8 +79,8 @@ public class MediaController {
                     media.getDescription(),
                     media.getMediaType(),
                     media.getReleaseYear(),
-                    request.getGenres(),
-                    request.getAgeRestriction(),
+                    media.getGenres(),
+                    media.getAgeRestriction(),
                     media.getCreatedAt()
             );
 
@@ -136,7 +138,9 @@ public class MediaController {
                     request.getTitle(),
                     request.getDescription(),
                     request.getMediaType(),
-                    request.getReleaseYear()
+                    request.getReleaseYear(),
+                    request.getGenres(),
+                    request.getAgeRestriction()
             );
 
             MediaResponse response = new MediaResponse(
@@ -145,8 +149,8 @@ public class MediaController {
                     media.getDescription(),
                     media.getMediaType(),
                     media.getReleaseYear(),
-                    request.getGenres(),
-                    request.getAgeRestriction(),
+                    media.getGenres(),
+                    media.getAgeRestriction(),
                     media.getCreatedAt()
             );
 
