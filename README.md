@@ -12,42 +12,89 @@ Das Projekt implementiert eine Plattform, auf der Benutzer verschiedene Medien b
 
 Das Projekt folgt einer klassischen Schichtenarchitektur:
 
-- **Controller**: Verarbeitung von HTTP-Requests und Routing
-- **Service**: Business-Logik und Validierung
-- **DAO**: Datenbankzugriff mit JDBC
-- **Entities**: Datenmodelle (User, Media, Rating)
+- **Controller Layer**: Verarbeitung von HTTP-Requests und Routing
+  - `AuthController` - Registrierung & Login
+  - `UserController` - User-Profile
+  - `MediaController` - Media CRUD Operations
+  
+- **Service Layer**: Business-Logik und Validierung
+  - `AuthService` - Token-Management
+  - `UserService` - User-Verwaltung (nutzt UserDAO)
+  - `MediaService` - Media-Verwaltung (nutzt MediaDAO)
+  
+- **DAO Layer**: Datenbankzugriff mit JDBC & PostgreSQL
+  - `UserDAO` - User CRUD Operations
+  - `MediaDAO` - Media CRUD Operations
+  
+- **Entity Layer**: Datenmodelle
+  - `User`, `Media`, `Rating`
+  
+- **DTO Layer**: Request/Response Objekte
+  - Request: `LoginRequest`, `RegisterRequest`, `MediaRequest`
+  - Response: `LoginResponse`, `MediaResponse`, `UserProfileResponse`
 
 ## Technologien
 
-- Java 17
-- PostgreSQL (Docker)
-- Jackson (JSON)
-- JUnit (Testing)
-- Maven
+- **Java 21**
+- **PostgreSQL** (Datenbank)
+- **Jackson** (JSON Serialisierung)
+- **Lombok** (Boilerplate-Reduktion)
+- **JUnit 5** (Testing)
+- **Maven** (Build-Tool)
+- **com.sun.net.httpserver** (HTTP-Server)
 
-## Installation
+## Installation & Setup
 
 ### Voraussetzungen
-- Java 17 oder höher
-- Docker Desktop
+- Java 21 oder höher
+- PostgreSQL 15+ installiert
 - Maven
+- pgAdmin (optional, für Datenbank-Management)
 
-### Setup
+### 1. PostgreSQL Setup
 
-1. Repository klonen
-2. PostgreSQL starten:
-   ```bash
-   docker-compose up -d
-   ```
-3. Datenbank initialisieren:
-   ```bash
-   psql -h localhost -U mrp_user -d mrp_db -f src/main/resources/schema.sql
-   ```
-4. Server starten:
-   ```bash
-   mvn clean compile
-   java -cp target/classes at.fhtw.swen1.mrp.Main
-   ```
+**Siehe detaillierte Anleitung:** [DATABASE-SETUP.md](DATABASE-SETUP.md)
+
+#### Schnellstart:
+1. PostgreSQL installieren
+2. pgAdmin öffnen
+3. Datenbank `mrp_db` erstellen
+4. Query Tool öffnen und `src/main/resources/schema.sql` ausführen
+
+**ODER** per Kommandozeile:
+```cmd
+setup-database.bat
+```
+
+### 2. Konfiguration anpassen
+
+Öffnen Sie `src/main/resources/application.properties`:
+```properties
+db.url=jdbc:postgresql://localhost:5432/mrp_db
+db.username=postgres
+db.password=IHR_POSTGRES_PASSWORT  # ← ÄNDERN!
+```
+
+### 3. Datenbankverbindung testen
+
+```cmd
+test-database.bat
+```
+
+### 4. Server starten
+
+**Windows:**
+```cmd
+start-server.bat
+```
+
+**Oder manuell:**
+```cmd
+mvn clean compile
+mvn exec:java
+```
+
+Server läuft auf: **http://localhost:8080**
 
 Der Server läuft dann auf Port 8080.
 

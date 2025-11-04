@@ -39,7 +39,9 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             sendResponse(exchange, 400, "{\"error\":\"" + e.getMessage() + "\"}");
         } catch (Exception e) {
-            sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
+            System.err.println("ERROR in handleRegister: " + e.getMessage());
+            e.printStackTrace();
+            sendResponse(exchange, 500, "{\"error\":\"Internal server error: " + e.getMessage() + "\"}");
         }
     }
 
@@ -61,7 +63,9 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             sendResponse(exchange, 401, "{\"error\":\"Invalid credentials\"}");
         } catch (Exception e) {
-            sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
+            System.err.println("ERROR in handleLogin: " + e.getMessage());
+            e.printStackTrace();
+            sendResponse(exchange, 500, "{\"error\":\"Internal server error: " + e.getMessage() + "\"}");
         }
     }
 

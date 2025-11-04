@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL, -- TODO: Implement proper password hashing
+    password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS media (
     description TEXT,
     media_type VARCHAR(50), -- movie, series, book, etc.
     release_year INTEGER,
-    genres JSONB, -- TODO: Consider separate genres table for normalization
+    genres JSONB,
     age_restriction VARCHAR(10),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
