@@ -22,7 +22,4 @@ public class RegisterRequest {
 
     @JsonProperty("Email")
     private String email;
-
-    // TODO: Input Validierung Annotationen hinzufügen
-    // TODO: Password Confirmation Feld hinzufügen
 }

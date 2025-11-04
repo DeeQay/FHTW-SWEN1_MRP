@@ -19,7 +19,4 @@ public class LoginRequest {
 
     @JsonProperty("Password")
     private String password;
-
-    // TODO: Input Validierung hinzufügen
-    // TODO: Rate Limiting für Login-Versuche hinzufügen
 }

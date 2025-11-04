@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
- * JSON-Hilfsklasse für Serialisierung und Deserialisierung
- * Verwendet Jackson für JSON-Verarbeitung
+ * JSON Serialisierung und Deserialisierung
  */
 public class JsonUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -16,7 +15,6 @@ public class JsonUtil {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        // TODO: Weitere Konfiguration für Produktion hinzufügen (Datumsformate, null-Behandlung, etc.)
     }
 
     public static String toJson(Object object) {
@@ -34,8 +32,4 @@ public class JsonUtil {
             throw new RuntimeException("Deserialisierung von JSON zu Objekt fehlgeschlagen", e);
         }
     }
-
-    // TODO: Methoden für generische Typ-Behandlung hinzufügen (List<T>, Map<String, T>, etc.)
-    // TODO: Fehlerbehandlung für fehlerhafte JSON hinzufügen
-    // TODO: Validierungsunterstützung hinzufügen
 }

@@ -29,8 +29,5 @@ public class Rating {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-
-    // TODO: Validierung hinzufügen (score range check)
-    // TODO: Prevent duplicate ratings (unique constraint in DB)
 }
 

@@ -20,7 +20,4 @@ public class MediaRequest {
     private Integer releaseYear;
     private List<String> genres;
     private String ageRestriction;
-
-    // TODO: Input Validierung hinzufügen
-    // TODO: Required Field Marker hinzufügen
 }

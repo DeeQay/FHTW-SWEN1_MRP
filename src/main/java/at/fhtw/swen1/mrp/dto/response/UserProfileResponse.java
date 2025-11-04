@@ -18,6 +18,5 @@ public class UserProfileResponse {
     private String email;
     private LocalDateTime createdAt;
 
-    // TODO: User-Statistiken hinzufügen (Ratings Count, etc.) für final submission
-    // HINWEIS: Niemals Password-Informationen in Response einschließen
+    // TODO: User-Stats hinzufügen
 }

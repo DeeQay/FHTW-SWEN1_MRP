@@ -30,7 +30,4 @@ public class Media {
         this.releaseYear = releaseYear;
         this.createdAt = LocalDateTime.now();
     }
-
-    // TODO: Validierungs-Methoden hinzufügen
-    // TODO: Rating-Berechnung hinzufügen
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class User {
     private Long id;
     private String username;
-    private String passwordHash; // TODO: Niemals Klartext-Passwörter speichern
+    private String passwordHash;
     private String email;
     private LocalDateTime createdAt;
 
@@ -25,7 +25,4 @@ public class User {
         this.email = email;
         this.createdAt = LocalDateTime.now();
     }
-
-    // TODO: Validierungs-Methoden hinzufügen
-    // TODO: Password Verification Methode hinzufügen
 }

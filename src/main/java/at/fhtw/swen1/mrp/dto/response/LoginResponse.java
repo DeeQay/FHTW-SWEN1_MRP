@@ -13,7 +13,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
     private String token;
-
-    // TODO: Token Expiration Info hinzufügen
-    // TODO: Refresh Token Support hinzufügen
 }

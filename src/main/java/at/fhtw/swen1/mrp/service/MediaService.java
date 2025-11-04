@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * MediaService verwaltet Geschäftslogik für Media-Operationen
- * Intermediate: In-Memory Storage
- */
 public class MediaService {
     private static final Map<Long, Media> mediaStore = new ConcurrentHashMap<>();
     private static long mediaIdCounter = 1L;
@@ -60,12 +56,11 @@ public class MediaService {
         return media;
     }
 
-    public boolean deleteMedia(Long id) {
+    public void deleteMedia(Long id) {
         if (!mediaStore.containsKey(id)) {
             throw new IllegalArgumentException("Media nicht gefunden");
         }
         mediaStore.remove(id);
-        return true;
     }
 }
 

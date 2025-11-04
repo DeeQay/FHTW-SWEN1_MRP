@@ -25,6 +25,5 @@ public class MediaResponse {
     private LocalDateTime createdAt;
 
 
-    // TODO: Add rating statistics for final submission
-    // TODO: Add review count, average rating, etc.
+    // TODO: Add rating
 }

@@ -8,9 +8,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * UserService verwaltet User-bezogene Business Logic
- */
 public class UserService {
     private static final Map<String, User> userStore = new ConcurrentHashMap<>();
     private static long userIdCounter = 1L;

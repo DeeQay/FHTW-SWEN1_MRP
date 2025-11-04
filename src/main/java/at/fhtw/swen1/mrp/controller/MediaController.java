@@ -15,14 +15,12 @@ import java.util.List;
 
 /**
  * MediaController verwaltet media-bezogene HTTP Endpoints
- * Zwischenabgabe - grundlegende CRUD Operationen für Media
  */
 public class MediaController {
     private final MediaService mediaService;
     private final AuthService authService;
 
     public MediaController() {
-        // TODO: Mit ordnungsgemäßer Dependency Injection in final submission initialisieren
         this.mediaService = new MediaService();
         this.authService = new AuthService();
     }
@@ -121,8 +119,6 @@ public class MediaController {
             );
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
-        } catch (IllegalArgumentException e) {
-            sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         } catch (Exception e) {
             sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         }

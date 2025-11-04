@@ -5,6 +5,6 @@ import java.sql.*;
 
 public class MediaDAO {
     public void save(Media media) {
-        // JDBC implementation with PreparedStatement
+        // datenbank
     }
 }
