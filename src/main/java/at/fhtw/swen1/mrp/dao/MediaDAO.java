@@ -1,7 +1,6 @@
 package at.fhtw.swen1.mrp.dao;
 
 import at.fhtw.swen1.mrp.entity.Media;
-import at.fhtw.swen1.mrp.util.DatabaseConnection;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -12,13 +11,10 @@ import java.util.List;
 public class MediaDAO {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public void save(Media media) {
+    public void save(Connection conn, Media media) {
         String sql = "INSERT INTO media (title, description, media_type, release_year, genres, age_restriction, created_at) VALUES (?, ?, ?, ?, ?::jsonb, ?, ?)";
 
-        // TODO getconnection im service
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, media.getTitle());
             stmt.setString(2, media.getDescription());
             stmt.setString(3, media.getMediaType());
@@ -38,12 +34,10 @@ public class MediaDAO {
         }
     }
 
-    public Media findById(Long id) {
+    public Media findById(Connection conn, Long id) {
         String sql = "SELECT * FROM media WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
 
@@ -56,12 +50,11 @@ public class MediaDAO {
         }
     }
 
-    public List<Media> findAll() {
+    public List<Media> findAll(Connection conn) {
         String sql = "SELECT * FROM media ORDER BY id";
         List<Media> mediaList = new ArrayList<>();
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
@@ -73,12 +66,10 @@ public class MediaDAO {
         }
     }
 
-    public void update(Media media) {
+    public void update(Connection conn, Media media) {
         String sql = "UPDATE media SET title = ?, description = ?, media_type = ?, release_year = ?, genres = ?::jsonb, age_restriction = ? WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, media.getTitle());
             stmt.setString(2, media.getDescription());
             stmt.setString(3, media.getMediaType());
@@ -93,12 +84,10 @@ public class MediaDAO {
         }
     }
 
-    public void delete(Long id) {
+    public void delete(Connection conn, Long id) {
         String sql = "DELETE FROM media WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -119,8 +108,7 @@ public class MediaDAO {
         String genresJson = rs.getString("genres");
         if (genresJson != null) {
             try {
-                List<String> genres = objectMapper.readValue(genresJson, new TypeReference<>() {
-                });
+                List<String> genres = objectMapper.readValue(genresJson, new TypeReference<>() {});
                 media.setGenres(genres);
             } catch (Exception e) {
                 media.setGenres(new ArrayList<>());

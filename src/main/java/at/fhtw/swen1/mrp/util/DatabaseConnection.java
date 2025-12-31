@@ -3,6 +3,7 @@ package at.fhtw.swen1.mrp.util;
 import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
+import java.util.function.Function;
 
 public class DatabaseConnection {
     private static final String dbUrl;
@@ -41,5 +42,47 @@ public class DatabaseConnection {
         } catch (Exception e) {
             throw new RuntimeException("Datenbankverbindung fehlgeschlagen: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Führt eine Transaktion aus und gibt ein Ergebnis zurück.
+     */
+    public static <T> T executeInTransaction(Function<Connection, T> operation) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            T result = operation.apply(conn);
+            conn.commit();
+            return result;
+        } catch (Exception e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ignored) {}
+            }
+            throw new RuntimeException("Transaktion fehlgeschlagen: " + e.getMessage(), e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ignored) {}
+            }
+        }
+    }
+
+    /**
+     * Führt eine Transaktion ohne Rückgabewert aus.
+     */
+    public static void executeInTransactionVoid(TransactionConsumer operation) {
+        executeInTransaction(conn -> {
+            try {
+                operation.accept(conn);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            return null;
+        });
+    }
+
+    @FunctionalInterface
+    public interface TransactionConsumer {
+        void accept(Connection conn) throws SQLException;
     }
 }
