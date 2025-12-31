@@ -2,6 +2,7 @@ package at.fhtw.swen1.mrp.server;
 
 import at.fhtw.swen1.mrp.controller.AuthController;
 import at.fhtw.swen1.mrp.controller.MediaController;
+import at.fhtw.swen1.mrp.controller.RatingController;
 import at.fhtw.swen1.mrp.controller.UserController;
 
 import java.io.IOException;
@@ -12,12 +13,14 @@ public class HttpServer {
     private final com.sun.net.httpserver.HttpServer server;
     private final AuthController authController;
     private final MediaController mediaController;
+    private final RatingController ratingController;
     private final UserController userController;
 
     public HttpServer() throws IOException {
         this.server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(8080), 0);
         this.authController = new AuthController();
         this.mediaController = new MediaController();
+        this.ratingController = new RatingController();
         this.userController = new UserController();
 
         configureRoutes();
@@ -25,10 +28,21 @@ public class HttpServer {
     }
 
     private void configureRoutes() {
+        // Authentifizierung
         server.createContext("/api/users/register", exchange -> authController.handleRegister(exchange));
         server.createContext("/api/users/login", exchange -> authController.handleLogin(exchange));
         server.createContext("/api/users", exchange -> userController.handleUser(exchange));
-        server.createContext("/api/media", exchange -> mediaController.handleMedia(exchange));
+
+        // Rating Routes
+        server.createContext("/api/media/", exchange -> {
+            String path = exchange.getRequestURI().getPath();
+            if (path.matches("/api/media/\\d+/rate")) {
+                ratingController.handleRating(exchange);
+            } else {
+                mediaController.handleMedia(exchange);
+            }
+        });
+        server.createContext("/api/ratings", exchange -> ratingController.handleRating(exchange));
     }
 
     public void start() {

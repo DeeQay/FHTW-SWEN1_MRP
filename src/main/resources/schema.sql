@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS media (
     release_year INTEGER,
     genres JSONB,
     age_restriction VARCHAR(10),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    creator_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ratings (
@@ -43,9 +45,9 @@ INSERT INTO users (username, password_hash, email) VALUES
 ('testuser', 'ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae', 'test@example.com')
 ON CONFLICT (username) DO NOTHING;
 
-INSERT INTO media (title, description, media_type, release_year, genres) VALUES
-('Test Movie', 'A test movie for intermediate submission', 'movie', 2023, '["Action", "Comedy"]'),
-('Sample Series', 'A sample TV series', 'series', 2022, '["Drama"]')
+INSERT INTO media (title, description, media_type, release_year, genres, creator_id) VALUES
+('Test Movie', 'A test movie for intermediate submission', 'movie', 2023, '["Action", "Comedy"]', 1),
+('Sample Series', 'A sample TV series', 'series', 2022, '["Drama"]', 1)
 ON CONFLICT DO NOTHING;
 
 -- Sample ratings data

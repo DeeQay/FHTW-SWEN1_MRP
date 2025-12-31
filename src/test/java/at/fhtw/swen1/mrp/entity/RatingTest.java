@@ -2,8 +2,6 @@ package at.fhtw.swen1.mrp.entity;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -14,24 +12,19 @@ class RatingTest {
 
     @Test
     void testRatingConstructor_WithAllFields() {
-        LocalDateTime now = LocalDateTime.now();
-        Rating rating = new Rating(1L, 1L, 1L, 5, "Great movie!", now, now);
+        Rating rating = new Rating(1L, 1L, 5, "Great movie!");
 
-        assertEquals(1L, rating.getId());
+        assertNull(rating.getId());
         assertEquals(1L, rating.getUserId());
         assertEquals(1L, rating.getMediaId());
         assertEquals(5, rating.getScore());
         assertEquals("Great movie!", rating.getComment());
-    }
-
-    @Test
-    void testRatingConstructor_WithoutId() {
-        Rating rating = new Rating(1L, 1L, 5, "Great movie!");
-
-        assertNull(rating.getId());
-        assertEquals(5, rating.getScore());
+        assertFalse(rating.getIsConfirmed());
+        assertEquals(0, rating.getLikeCount());
         assertNotNull(rating.getCreatedAt());
+        assertNotNull(rating.getUpdatedAt());
     }
+
 
     @Test
     void testRatingSettersAndGetters() {

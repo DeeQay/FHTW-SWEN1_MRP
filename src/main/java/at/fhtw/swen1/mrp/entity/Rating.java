@@ -23,15 +23,29 @@ public class Rating {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // Constructor: userId, mediaId, score, comment, (Rest = Default)
     public Rating(Long userId, Long mediaId, Integer score, String comment) {
         this.userId = userId;
         this.mediaId = mediaId;
         this.score = score;
         this.comment = comment;
-        this.isConfirmed = false;
-        this.likeCount = 0;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.isConfirmed = false; // default: false
+        this.likeCount = 0; // default: 0
+        this.createdAt = LocalDateTime.now(); // default: now
+        this.updatedAt = LocalDateTime.now(); // default: now
+    }
+
+    // Constructor: + isConfirmed
+    public Rating(Long userId, Long mediaId, Integer score, String comment, Boolean isConfirmed) {
+        this(userId, mediaId, score, comment);
+        this.isConfirmed = isConfirmed;
+    }
+
+    // Constructor: + isConfirmed, likeCount
+    public Rating(Long userId, Long mediaId, Integer score, String comment, Boolean isConfirmed, Integer likeCount) {
+        this(userId, mediaId, score, comment);
+        this.isConfirmed = isConfirmed;
+        this.likeCount = likeCount;
     }
 }
 

@@ -19,13 +19,14 @@ class MediaTest {
         List<String> genres = Arrays.asList("Action", "Comedy");
         LocalDateTime now = LocalDateTime.now();
 
-        Media media = new Media(1L, "Test Movie", "Description", "movie", 2024, genres, "PG-13", now);
+        Media media = new Media(1L, "Test Movie", "Description", "movie", 2024, genres, "PG-13", 1L, now);
 
         assertEquals(1L, media.getId());
         assertEquals("Test Movie", media.getTitle());
         assertEquals("movie", media.getMediaType());
         assertEquals(2024, media.getReleaseYear());
         assertEquals(genres, media.getGenres());
+        assertEquals(1L, media.getCreatorId());
     }
 
     @Test

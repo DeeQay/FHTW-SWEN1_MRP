@@ -12,7 +12,7 @@ public class MediaDAO {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public void save(Connection conn, Media media) {
-        String sql = "INSERT INTO media (title, description, media_type, release_year, genres, age_restriction, created_at) VALUES (?, ?, ?, ?, ?::jsonb, ?, ?)";
+        String sql = "INSERT INTO media (title, description, media_type, release_year, genres, age_restriction, creator_id, created_at) VALUES (?, ?, ?, ?, ?::jsonb, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, media.getTitle());
@@ -21,7 +21,8 @@ public class MediaDAO {
             stmt.setObject(4, media.getReleaseYear());
             stmt.setString(5, objectMapper.writeValueAsString(media.getGenres()));
             stmt.setString(6, media.getAgeRestriction());
-            stmt.setTimestamp(7, Timestamp.valueOf(media.getCreatedAt()));
+            stmt.setObject(7, media.getCreatorId());
+            stmt.setTimestamp(8, Timestamp.valueOf(media.getCreatedAt()));
 
             stmt.executeUpdate();
 
@@ -116,6 +117,9 @@ public class MediaDAO {
         }
 
         media.setAgeRestriction(rs.getString("age_restriction"));
+
+        Long creatorId = (Long) rs.getObject("creator_id");
+        media.setCreatorId(creatorId);
 
         Timestamp timestamp = rs.getTimestamp("created_at");
         if (timestamp != null) {
