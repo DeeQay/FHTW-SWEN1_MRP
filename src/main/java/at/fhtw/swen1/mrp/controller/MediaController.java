@@ -35,7 +35,7 @@ public class MediaController {
         String path = exchange.getRequestURI().getPath();
 
         // Route basierend auf Method und Path
-        if ("/api/media".equals(path) || path.equals("/api/media/")) {
+        if ("/api/media".equals(path) || "/api/media/".equals(path)) {
             switch (method) {
                 case "POST" -> handleCreateMedia(exchange);
                 case "GET" -> handleGetAllMedia(exchange);
