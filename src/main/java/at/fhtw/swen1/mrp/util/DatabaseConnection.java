@@ -5,13 +5,12 @@ import java.sql.*;
 import java.util.Properties;
 
 public class DatabaseConnection {
-    private static String dbUrl;
-    private static String dbUsername;
-    private static String dbPassword;
+    private static final String dbUrl;
+    private static final String dbUsername;
+    private static final String dbPassword;
 
     static {
         try {
-            // PostgreSQL-Treiber explizit laden
             Class.forName("org.postgresql.Driver");
 
             // DB-Konfiguration laden
@@ -38,8 +37,7 @@ public class DatabaseConnection {
     public static Connection getConnection() {
         try {
             // Erstelle NEUE Connection für jeden Request
-            Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-            return conn;
+            return DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         } catch (Exception e) {
             throw new RuntimeException("Datenbankverbindung fehlgeschlagen: " + e.getMessage(), e);
         }

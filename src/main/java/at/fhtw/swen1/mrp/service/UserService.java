@@ -6,11 +6,9 @@ import at.fhtw.swen1.mrp.entity.User;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-//import java.util.Map;
-//import java.util.concurrent.ConcurrentHashMap;
 
 public class UserService {
-    // OLD: In-Memory Storage (auskommentiert)
+    // OLD: Memory Map statt DAO mit Datenbank
     //private static final Map<String, User> userStore = new ConcurrentHashMap<>();
     //private static long userIdCounter = 1L;
 
@@ -38,7 +36,7 @@ public class UserService {
         userDAO.save(user);
         return user;
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //if (userStore.containsKey(username)) {
         //    throw new IllegalArgumentException("Username bereits vorhanden");
         //}
@@ -66,7 +64,7 @@ public class UserService {
 
         return user;
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //User user = userStore.get(username);
         //if (user == null) {
         //    throw new IllegalArgumentException("Ungültige Credentials");
@@ -81,7 +79,7 @@ public class UserService {
     public User getUserByUsername(String username) {
         return userDAO.findByUsername(username);
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //return userStore.get(username);
     }
 

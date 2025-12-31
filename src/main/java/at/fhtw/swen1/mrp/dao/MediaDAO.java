@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +15,7 @@ public class MediaDAO {
     public void save(Media media) {
         String sql = "INSERT INTO media (title, description, media_type, release_year, genres, age_restriction, created_at) VALUES (?, ?, ?, ?, ?::jsonb, ?, ?)";
 
+        // TODO getconnection im service
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -119,7 +119,8 @@ public class MediaDAO {
         String genresJson = rs.getString("genres");
         if (genresJson != null) {
             try {
-                List<String> genres = objectMapper.readValue(genresJson, new TypeReference<List<String>>() {});
+                List<String> genres = objectMapper.readValue(genresJson, new TypeReference<>() {
+                });
                 media.setGenres(genres);
             } catch (Exception e) {
                 media.setGenres(new ArrayList<>());

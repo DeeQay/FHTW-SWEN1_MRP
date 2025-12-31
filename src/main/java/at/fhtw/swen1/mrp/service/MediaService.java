@@ -5,16 +5,12 @@ import at.fhtw.swen1.mrp.entity.Media;
 
 import java.time.LocalDateTime;
 import java.util.List;
-//import java.util.ArrayList;
-//import java.util.Map;
-//import java.util.concurrent.ConcurrentHashMap;
 
 public class MediaService {
-    // OLD: In-Memory Storage (auskommentiert)
+    // OLD: Memory Map statt DAO mit Datenbank
     //private static final Map<Long, Media> mediaStore = new ConcurrentHashMap<>();
     //private static long mediaIdCounter = 1L;
 
-    // NEW: Database Access
     private final MediaDAO mediaDAO;
 
     public MediaService() {
@@ -34,7 +30,7 @@ public class MediaService {
         mediaDAO.save(media);
         return media;
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //Media media = new Media();
         //media.setId(mediaIdCounter++);
         //media.setTitle(title);
@@ -51,7 +47,7 @@ public class MediaService {
     public List<Media> getAllMedia() {
         return mediaDAO.findAll();
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //return new ArrayList<>(mediaStore.values());
     }
 
@@ -62,7 +58,7 @@ public class MediaService {
         }
         return media;
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //Media media = mediaStore.get(id);
         //if (media == null) {
         //    throw new IllegalArgumentException("Media nicht gefunden");
@@ -86,7 +82,7 @@ public class MediaService {
         mediaDAO.update(media);
         return media;
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //Media media = mediaStore.get(id);
         //if (media == null) {
         //    throw new IllegalArgumentException("Media nicht gefunden");
@@ -108,7 +104,7 @@ public class MediaService {
         }
         mediaDAO.delete(id);
 
-        // OLD CODE (auskommentiert):
+        // OLD: Memory Map statt DAO mit Datenbank
         //if (!mediaStore.containsKey(id)) {
         //    throw new IllegalArgumentException("Media nicht gefunden");
         //}

@@ -4,13 +4,13 @@ import at.fhtw.swen1.mrp.entity.User;
 import at.fhtw.swen1.mrp.util.DatabaseConnection;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 
 public class UserDAO {
 
     public void save(User user) {
         String sql = "INSERT INTO users (username, password_hash, email, created_at) VALUES (?, ?, ?, ?)";
 
+        // TODO getconnection im service
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
