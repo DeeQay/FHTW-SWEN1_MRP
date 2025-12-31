@@ -29,9 +29,9 @@ public class HttpServer {
 
     private void configureRoutes() {
         // Authentifizierung
-        server.createContext("/api/users/register", exchange -> authController.handleRegister(exchange));
-        server.createContext("/api/users/login", exchange -> authController.handleLogin(exchange));
-        server.createContext("/api/users", exchange -> userController.handleUser(exchange));
+        server.createContext("/api/users/register", authController::handleRegister);
+        server.createContext("/api/users/login", authController::handleLogin);
+        server.createContext("/api/users", userController::handleUser);
 
         // Rating Routes
         server.createContext("/api/media/", exchange -> {
@@ -42,7 +42,7 @@ public class HttpServer {
                 mediaController.handleMedia(exchange);
             }
         });
-        server.createContext("/api/ratings", exchange -> ratingController.handleRating(exchange));
+        server.createContext("/api/ratings", ratingController::handleRating);
     }
 
     public void start() {

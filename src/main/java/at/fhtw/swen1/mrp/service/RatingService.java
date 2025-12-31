@@ -95,7 +95,7 @@ public class RatingService {
             return ratings.stream()
                     .mapToInt(Rating::getScore)
                     .average()
-                    .getAsDouble();
+                    .orElse(0.0); // null wenn keine Ratings
         });
     }
 
