@@ -21,6 +21,7 @@ public class Media {
     private Integer releaseYear;
     private List<String> genres;
     private String ageRestriction;
+    private Long creatorId; // Owner für Edit/Delete Berechtigung
     private LocalDateTime createdAt;
 
     public Media(String title, String description, String mediaType, Integer releaseYear) {

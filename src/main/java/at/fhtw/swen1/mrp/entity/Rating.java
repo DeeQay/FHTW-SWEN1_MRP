@@ -16,8 +16,10 @@ public class Rating {
     private Long id;
     private Long userId;
     private Long mediaId;
-    private Integer score; // z.B. 1-5 oder 1-10
+    private Integer score; // 1-5 Sterne
     private String comment;
+    private Boolean isConfirmed; // Comment sichtbar erst nach Bestätigung
+    private Integer likeCount; // Anzahl der Likes
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -26,6 +28,8 @@ public class Rating {
         this.mediaId = mediaId;
         this.score = score;
         this.comment = comment;
+        this.isConfirmed = false;
+        this.likeCount = 0;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

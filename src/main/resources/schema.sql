@@ -23,8 +23,10 @@ CREATE TABLE IF NOT EXISTS ratings (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     media_id INTEGER NOT NULL,
-    score INTEGER NOT NULL CHECK (score >= 1 AND score <= 10), -- Rating range 1-10
+    score INTEGER NOT NULL CHECK (score >= 1 AND score <= 5), -- Rating range 1-5
     comment TEXT,
+    is_confirmed BOOLEAN DEFAULT FALSE, -- Comment sichtbar erst nach Bestätigung
+    like_count INTEGER DEFAULT 0, -- Anzahl der Likes
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
