@@ -1,7 +1,9 @@
 package at.fhtw.swen1.mrp.service;
 
 import at.fhtw.swen1.mrp.dao.RatingDAO;
+import at.fhtw.swen1.mrp.dao.RatingLikeDAO;
 import at.fhtw.swen1.mrp.entity.Rating;
+import at.fhtw.swen1.mrp.entity.RatingLike;
 import at.fhtw.swen1.mrp.util.DatabaseConnection;
 
 import java.time.LocalDateTime;
@@ -13,9 +15,11 @@ import java.util.List;
 public class RatingService {
 
     private final RatingDAO ratingDAO;
+    private final RatingLikeDAO ratingLikeDAO;
 
     public RatingService() {
         this.ratingDAO = new RatingDAO();
+        this.ratingLikeDAO = new RatingLikeDAO();
     }
 
     // Rating erstellen (1 pro User pro Media)
@@ -70,12 +74,18 @@ public class RatingService {
         });
     }
 
-    // Kommentar bestätigen (Moderation)
-    public Rating confirmComment(Long ratingId) {
+    // Kommentar bestätigen (in pdf steht "moderation", aber nur der Verfasser soll bestätigen??)
+    // specification pdf: requires confirmation by the creator before the comment becomes publicly visible (moderation feature) o comments are not publicly visible until confirmed by the author
+    public Rating confirmComment(Long ratingId, Long userId) {
         return DatabaseConnection.executeInTransaction(conn -> {
             Rating rating = ratingDAO.findById(conn, ratingId);
             if (rating == null) {
                 throw new IllegalArgumentException("Rating nicht gefunden");
+            }
+
+            // Nur der Rating-Verfasser darf bestätigen
+            if (!rating.getUserId().equals(userId)) {
+                throw new SecurityException("Nicht berechtigt diesen Kommentar zu bestätigen");
             }
 
             rating.setIsConfirmed(true);
@@ -112,6 +122,61 @@ public class RatingService {
     // Rating History eines Users
     public List<Rating> getRatingsByUserId(Long userId) {
         return DatabaseConnection.executeInTransaction(conn -> ratingDAO.findByUserId(conn, userId));
+    }
+
+    // Rating liken (1 Like pro User pro Rating)
+    public Rating likeRating(Long ratingId, Long userId) {
+        return DatabaseConnection.executeInTransaction(conn -> {
+            // Rating prüfen
+            Rating rating = ratingDAO.findById(conn, ratingId);
+            if (rating == null) {
+                throw new IllegalArgumentException("Rating nicht gefunden");
+            }
+
+            // Prüfen ob bereits geliked
+            if (ratingLikeDAO.existsByUserAndRating(conn, userId, ratingId)) {
+                throw new IllegalStateException("User hat dieses Rating bereits geliked");
+            }
+
+            // Like speichern
+            RatingLike like = new RatingLike(userId, ratingId);
+            ratingLikeDAO.save(conn, like);
+
+            // like_count incrementieren (null-safe)
+            Integer currentLikes = rating.getLikeCount();
+            rating.setLikeCount(currentLikes != null ? currentLikes + 1 : 1);
+            rating.setUpdatedAt(LocalDateTime.now());
+            ratingDAO.update(conn, rating);
+
+            return rating;
+        });
+    }
+
+    // Rating unliken (Like entfernen)
+    public Rating unlikeRating(Long ratingId, Long userId) {
+        return DatabaseConnection.executeInTransaction(conn -> {
+            // Rating prüfen
+            Rating rating = ratingDAO.findById(conn, ratingId);
+            if (rating == null) {
+                throw new IllegalArgumentException("Rating nicht gefunden");
+            }
+
+            // Prüfen ob Like existiert
+            if (!ratingLikeDAO.existsByUserAndRating(conn, userId, ratingId)) {
+                throw new IllegalStateException("User hat dieses Rating nicht geliked");
+            }
+
+            // Like entfernen
+            ratingLikeDAO.deleteByUserAndRating(conn, userId, ratingId);
+
+            // like_count decrementieren (null-safe, nicht unter 0)
+            Integer currentLikes = rating.getLikeCount();
+            rating.setLikeCount(currentLikes != null && currentLikes > 0 ? currentLikes - 1 : 0);
+            rating.setUpdatedAt(LocalDateTime.now());
+            ratingDAO.update(conn, rating);
+
+            return rating;
+        });
     }
 }
 

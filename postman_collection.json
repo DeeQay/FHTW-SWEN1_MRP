@@ -297,6 +297,103 @@
           "path": ["api", "media"]
         }
       }
+    },
+    {
+      "name": "10. Like Rating",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"likeCount incremented\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.likeCount).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ratings/1/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ratings", "1", "like"]
+        }
+      }
+    },
+    {
+      "name": "11. Like Rating (Duplicate - 409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 409 - Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ratings/1/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ratings", "1", "like"]
+        }
+      }
+    },
+    {
+      "name": "12. Unlike Rating",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"likeCount decremented\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.likeCount).to.equal(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ratings/1/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ratings", "1", "like"]
+        }
+      }
     }
   ]
 }

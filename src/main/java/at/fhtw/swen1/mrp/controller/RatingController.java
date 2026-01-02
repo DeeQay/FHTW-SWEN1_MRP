@@ -67,6 +67,20 @@ public class RatingController {
             return;
         }
 
+        // POST /api/ratings/{ratingId}/like - Rating liken
+        if (path.matches("/api/ratings/\\d+/like") && "POST".equals(method)) {
+            String ratingId = extractPathSegment(path, 3);
+            handleLikeRating(exchange, ratingId);
+            return;
+        }
+
+        // DELETE /api/ratings/{ratingId}/like - Rating unliken
+        if (path.matches("/api/ratings/\\d+/like") && "DELETE".equals(method)) {
+            String ratingId = extractPathSegment(path, 3);
+            handleUnlikeRating(exchange, ratingId);
+            return;
+        }
+
         sendResponse(exchange, 404, "{\"error\":\"Endpoint not found\"}");
     }
 
@@ -109,12 +123,17 @@ public class RatingController {
             RatingRequest request = JsonUtil.fromJson(requestBody, RatingRequest.class);
 
             // Score Validierung
-            if (request.getScore() < 1 || request.getScore() > 5) {
+            Integer score = request.getScore();
+            if (score == null) {
+                sendResponse(exchange, 400, "{\"error\":\"Score darf nicht leer sein\"}");
+                return;
+            }
+            if (score < 1 || score > 5) {
                 sendResponse(exchange, 400, "{\"error\":\"Score muss zwischen 1 und 5 liegen\"}");
                 return;
             }
 
-            Rating rating = ratingService.updateRating(ratingId, userId, request.getScore(), request.getComment());
+            Rating rating = ratingService.updateRating(ratingId, userId, score, request.getComment());
             sendResponse(exchange, 200, JsonUtil.toJson(mapToResponse(rating)));
 
         } catch (SecurityException e) {
@@ -146,9 +165,49 @@ public class RatingController {
     private void handleConfirmComment(HttpExchange exchange, String ratingIdStr) throws IOException {
         try {
             Long ratingId = Long.parseLong(ratingIdStr);
-            Rating rating = ratingService.confirmComment(ratingId);
+            Long userId = getUserIdFromToken(exchange);
+
+            Rating rating = ratingService.confirmComment(ratingId, userId);
             sendResponse(exchange, 200, JsonUtil.toJson(mapToResponse(rating)));
 
+        } catch (SecurityException e) {
+            sendResponse(exchange, 403, "{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (IllegalArgumentException e) {
+            sendResponse(exchange, 404, "{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            sendResponse(exchange, 400, "{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
+    private void handleLikeRating(HttpExchange exchange, String ratingIdStr) throws IOException {
+        try {
+            Long ratingId = Long.parseLong(ratingIdStr);
+            Long userId = getUserIdFromToken(exchange);
+
+            Rating rating = ratingService.likeRating(ratingId, userId);
+            sendResponse(exchange, 200, JsonUtil.toJson(mapToResponse(rating)));
+
+        } catch (IllegalStateException e) {
+            // User hat bereits geliked oder eigenes Rating
+            sendResponse(exchange, 409, "{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (IllegalArgumentException e) {
+            sendResponse(exchange, 404, "{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            sendResponse(exchange, 400, "{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
+    private void handleUnlikeRating(HttpExchange exchange, String ratingIdStr) throws IOException {
+        try {
+            Long ratingId = Long.parseLong(ratingIdStr);
+            Long userId = getUserIdFromToken(exchange);
+
+            Rating rating = ratingService.unlikeRating(ratingId, userId);
+            sendResponse(exchange, 200, JsonUtil.toJson(mapToResponse(rating)));
+
+        } catch (IllegalStateException e) {
+            // User hat nicht geliked
+            sendResponse(exchange, 409, "{\"error\":\"" + e.getMessage() + "\"}");
         } catch (IllegalArgumentException e) {
             sendResponse(exchange, 404, "{\"error\":\"" + e.getMessage() + "\"}");
         } catch (Exception e) {
