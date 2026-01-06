@@ -18,7 +18,7 @@ public class MediaService {
         this.mediaDAO = new MediaDAO();
     }
 
-    public Media createMedia(String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction) {
+    public Media createMedia(String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction, Long creatorId) {
         return DatabaseConnection.executeInTransaction(conn -> {
             Media media = new Media();
             media.setTitle(title);
@@ -27,6 +27,7 @@ public class MediaService {
             media.setReleaseYear(releaseYear);
             media.setGenres(genres);
             media.setAgeRestriction(ageRestriction);
+            media.setCreatorId(creatorId);
             media.setCreatedAt(LocalDateTime.now());
 
             mediaDAO.save(conn, media);

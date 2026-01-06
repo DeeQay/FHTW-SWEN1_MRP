@@ -46,7 +46,7 @@ public class HttpServer {
         });
 
         // Media Routes (inkl. Rating und Favorite)
-        server.createContext("/api/media/", exchange -> {
+        server.createContext("/api/media", exchange -> {
             String path = exchange.getRequestURI().getPath();
             if (path.matches("/api/media/\\d+/rate")) {
                 ratingController.handleRating(exchange);

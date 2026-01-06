@@ -4,6 +4,7 @@ import at.fhtw.swen1.mrp.dto.request.MediaRequest;
 import at.fhtw.swen1.mrp.dto.response.MediaResponse;
 import at.fhtw.swen1.mrp.service.MediaService;
 import at.fhtw.swen1.mrp.service.AuthService;
+import at.fhtw.swen1.mrp.service.UserService;
 import at.fhtw.swen1.mrp.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -19,10 +20,12 @@ import java.util.List;
 public class MediaController {
     private final MediaService mediaService;
     private final AuthService authService;
+    private final UserService userService;
 
     public MediaController() {
         this.mediaService = new MediaService();
         this.authService = new AuthService();
+        this.userService = new UserService();
     }
 
     public void handleMedia(HttpExchange exchange) throws IOException {
@@ -59,6 +62,7 @@ public class MediaController {
 
     private void handleCreateMedia(HttpExchange exchange) throws IOException {
         try {
+            Long userId = getUserIdFromToken(exchange);
             String requestBody = readRequestBody(exchange);
             MediaRequest request = JsonUtil.fromJson(requestBody, MediaRequest.class);
 
@@ -68,7 +72,8 @@ public class MediaController {
                     request.getMediaType(),
                     request.getReleaseYear(),
                     request.getGenres(),
-                    request.getAgeRestriction()
+                    request.getAgeRestriction(),
+                    userId
             );
 
             MediaResponse response = new MediaResponse(
@@ -193,6 +198,23 @@ public class MediaController {
 
         String token = authHeader.substring(7); // "Bearer " prefix entfernen
         return authService.validateToken(token);
+    }
+
+    private Long getUserIdFromToken(HttpExchange exchange) {
+        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String username = authService.getUsernameFromToken(token);
+        if (username == null) {
+            throw new IllegalStateException("Ungültiger Token");
+        }
+        at.fhtw.swen1.mrp.entity.User user = userService.getUserByUsername(username);
+        if (user == null) {
+            throw new IllegalStateException("User nicht gefunden");
+        }
+        return user.getId();
     }
 }
 

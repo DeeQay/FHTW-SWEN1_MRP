@@ -1,6 +1,14 @@
 -- Media Ratings Platform - Database Schema
 
-CREATE TABLE IF NOT EXISTS users (
+-- Alte Tabellen löschen
+DROP TABLE IF EXISTS rating_likes CASCADE;
+DROP TABLE IF EXISTS favorites CASCADE;
+DROP TABLE IF EXISTS ratings CASCADE;
+DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+-- Tabellen neu erstellen
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -8,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS media (
+CREATE TABLE media (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -21,7 +29,7 @@ CREATE TABLE IF NOT EXISTS media (
     FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS ratings (
+CREATE TABLE ratings (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     media_id INTEGER NOT NULL,
@@ -37,7 +45,7 @@ CREATE TABLE IF NOT EXISTS ratings (
 );
 
 -- Tabelle für Rating-Likes (1 Like pro User pro Rating)
-CREATE TABLE IF NOT EXISTS rating_likes (
+CREATE TABLE rating_likes (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     rating_id INTEGER NOT NULL,
@@ -48,7 +56,7 @@ CREATE TABLE IF NOT EXISTS rating_likes (
 );
 
 -- Tabelle für Favorites (1 Favorit pro User pro Media)
-CREATE TABLE IF NOT EXISTS favorites (
+CREATE TABLE favorites (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     media_id INTEGER NOT NULL,

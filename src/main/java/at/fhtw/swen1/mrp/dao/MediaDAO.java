@@ -103,7 +103,7 @@ public class MediaDAO {
         media.setDescription(rs.getString("description"));
         media.setMediaType(rs.getString("media_type"));
 
-        Integer releaseYear = (Integer) rs.getObject("release_year");
+        Integer releaseYear = rs.getObject("release_year", Integer.class);
         media.setReleaseYear(releaseYear);
 
         String genresJson = rs.getString("genres");
@@ -118,8 +118,11 @@ public class MediaDAO {
 
         media.setAgeRestriction(rs.getString("age_restriction"));
 
-        Long creatorId = (Long) rs.getObject("creator_id");
-        media.setCreatorId(creatorId);
+        // Korrigierter Zugriff auf IDs (vermeidet ClassCastException)
+        long creatorId = rs.getLong("creator_id");
+        if (!rs.wasNull()) {
+            media.setCreatorId(creatorId);
+        }
 
         Timestamp timestamp = rs.getTimestamp("created_at");
         if (timestamp != null) {

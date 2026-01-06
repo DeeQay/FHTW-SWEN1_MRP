@@ -59,6 +59,9 @@ public class DatabaseConnection {
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ignored) {}
             }
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
             throw new RuntimeException("Transaktion fehlgeschlagen: " + e.getMessage(), e);
         } finally {
             if (conn != null) {
