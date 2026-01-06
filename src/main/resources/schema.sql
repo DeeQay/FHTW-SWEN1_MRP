@@ -47,6 +47,17 @@ CREATE TABLE IF NOT EXISTS rating_likes (
     UNIQUE(user_id, rating_id) -- Verhindert doppelte Likes
 );
 
+-- Tabelle für Favorites (1 Favorit pro User pro Media)
+CREATE TABLE IF NOT EXISTS favorites (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    media_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+    UNIQUE(user_id, media_id) -- Verhindert doppelte Favoriten
+);
+
 -- Insert sample data for testing
 -- Passwords are hashed with SHA-256:
 -- 'max' -> 7a95bf926a0333f57705aaac2e7f9d5f46a6c1c2f4052a89a5b99a1f01e8b199

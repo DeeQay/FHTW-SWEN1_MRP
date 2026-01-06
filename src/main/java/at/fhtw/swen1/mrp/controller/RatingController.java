@@ -234,7 +234,13 @@ public class RatingController {
     private Long getUserIdFromToken(HttpExchange exchange) {
         String token = getTokenFromHeader(exchange);
         String username = authService.getUsernameFromToken(token);
+        if (username == null) {
+            throw new IllegalStateException("Ungültiger Token");
+        }
         User user = userService.getUserByUsername(username);
+        if (user == null) {
+            throw new IllegalStateException("User nicht gefunden");
+        }
         return user.getId();
     }
 
