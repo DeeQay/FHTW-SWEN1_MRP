@@ -22,6 +22,7 @@ public class MediaResponse {
     private Integer releaseYear;
     private List<String> genres;
     private String ageRestriction;
+    private Long creatorId;
     private LocalDateTime createdAt;
 
 

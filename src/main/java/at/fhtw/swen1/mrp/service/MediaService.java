@@ -72,11 +72,16 @@ public class MediaService {
         //return media;
     }
 
-    public Media updateMedia(Long id, String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction) {
+    public Media updateMedia(Long id, String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction, Long userId) {
         return DatabaseConnection.executeInTransaction(conn -> {
             Media media = mediaDAO.findById(conn, id);
             if (media == null) {
                 throw new IllegalArgumentException("Media nicht gefunden");
+            }
+
+            // Ownership Check: nur Creator darf bearbeiten
+            if (media.getCreatorId() == null || !media.getCreatorId().equals(userId)) {
+                throw new SecurityException("Nur der Creator darf dieses Media bearbeiten");
             }
 
             media.setTitle(title);
@@ -105,12 +110,18 @@ public class MediaService {
         });
     }
 
-    public void deleteMedia(Long id) {
+    public void deleteMedia(Long id, Long userId) {
         DatabaseConnection.executeInTransactionVoid(conn -> {
             Media media = mediaDAO.findById(conn, id);
             if (media == null) {
                 throw new IllegalArgumentException("Media nicht gefunden");
             }
+
+            // Ownership Check: nur Creator darf löschen
+            if (media.getCreatorId() == null || !media.getCreatorId().equals(userId)) {
+                throw new SecurityException("Nur der Creator darf dieses Media löschen");
+            }
+
             mediaDAO.delete(conn, id);
         });
         // OLD: Memory Map statt DAO mit Datenbank

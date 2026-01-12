@@ -31,7 +31,7 @@ public class MediaController {
     public void handleMedia(HttpExchange exchange) throws IOException {
         // Prüfe Authentication für alle Media-Endpoints
         if (!isAuthenticated(exchange)) {
-            sendResponse(exchange, 401, "{\"error\":\"Unauthorized - Missing or invalid token\"}");
+            sendResponse(exchange, 401, "{\"error\":\"Unauthorized\"}");
             return;
         }
         String method = exchange.getRequestMethod();
@@ -84,6 +84,7 @@ public class MediaController {
                     media.getReleaseYear(),
                     media.getGenres(),
                     media.getAgeRestriction(),
+                    media.getCreatorId(),
                     media.getCreatedAt()
             );
 
@@ -99,7 +100,7 @@ public class MediaController {
 
             List<MediaResponse> responseList = mediaList.stream()
                     .map(m -> new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
-                            m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(), m.getCreatedAt()))
+                            m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(), m.getCreatorId(), m.getCreatedAt()))
                     .collect(java.util.stream.Collectors.toList());
 
             sendResponse(exchange, 200, JsonUtil.toJson(responseList));
@@ -120,6 +121,7 @@ public class MediaController {
                     media.getReleaseYear(),
                     media.getGenres(),
                     media.getAgeRestriction(),
+                    media.getCreatorId(),
                     media.getCreatedAt()
             );
 
@@ -131,6 +133,7 @@ public class MediaController {
 
     private void handleUpdateMedia(HttpExchange exchange, String mediaId) throws IOException {
         try {
+            Long userId = getUserIdFromToken(exchange);
             String requestBody = readRequestBody(exchange);
             MediaRequest request = JsonUtil.fromJson(requestBody, MediaRequest.class);
 
@@ -141,7 +144,8 @@ public class MediaController {
                     request.getMediaType(),
                     request.getReleaseYear(),
                     request.getGenres(),
-                    request.getAgeRestriction()
+                    request.getAgeRestriction(),
+                    userId
             );
 
             MediaResponse response = new MediaResponse(
@@ -152,10 +156,13 @@ public class MediaController {
                     media.getReleaseYear(),
                     media.getGenres(),
                     media.getAgeRestriction(),
+                    media.getCreatorId(),
                     media.getCreatedAt()
             );
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
+        } catch (SecurityException e) {
+            sendResponse(exchange, 403, "{\"error\":\"" + e.getMessage() + "\"}");
         } catch (IllegalArgumentException e) {
             sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         } catch (Exception e) {
@@ -165,8 +172,11 @@ public class MediaController {
 
     private void handleDeleteMedia(HttpExchange exchange, String mediaId) throws IOException {
         try {
-            mediaService.deleteMedia(Long.parseLong(mediaId));
+            Long userId = getUserIdFromToken(exchange);
+            mediaService.deleteMedia(Long.parseLong(mediaId), userId);
             sendResponse(exchange, 204, "");
+        } catch (SecurityException e) {
+            sendResponse(exchange, 403, "{\"error\":\"" + e.getMessage() + "\"}");
         } catch (IllegalArgumentException e) {
             sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
         } catch (Exception e) {
