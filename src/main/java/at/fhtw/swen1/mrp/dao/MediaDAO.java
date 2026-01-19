@@ -96,6 +96,94 @@ public class MediaDAO {
         }
     }
 
+    // Filter Suche
+    public List<Media> findWithFilters(Connection conn, String title, String genre, String mediaType,
+                                        Integer releaseYear, String ageRestriction, Double minRating, String sortBy) {
+        List<Media> mediaList = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        // Base Query mit optionalem LEFT JOIN für Rating-Berechnung
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT m.*, COALESCE(AVG(r.score), 0) as avg_rating ");
+        sql.append("FROM media m ");
+        sql.append("LEFT JOIN ratings r ON m.id = r.media_id ");
+        sql.append("WHERE 1=1 ");
+
+        // Filter: Title (partial match, case-insensitive)
+        if (title != null && !title.isBlank()) {
+            sql.append("AND LOWER(m.title) LIKE LOWER(?) ");
+            params.add("%" + title + "%");
+        }
+
+        // Filter: Genre (prüft ob genre in JSONB Array enthalten ist)
+        if (genre != null && !genre.isBlank()) {
+            sql.append("AND m.genres @> ?::jsonb ");
+            params.add("[\"" + genre + "\"]");
+        }
+
+        // Filter: Media Type
+        if (mediaType != null && !mediaType.isBlank()) {
+            sql.append("AND m.media_type = ? ");
+            params.add(mediaType);
+        }
+
+        // Filter: Release Year
+        if (releaseYear != null) {
+            sql.append("AND m.release_year = ? ");
+            params.add(releaseYear);
+        }
+
+        // Filter: Age Restriction
+        if (ageRestriction != null && !ageRestriction.isBlank()) {
+            sql.append("AND m.age_restriction = ? ");
+            params.add(ageRestriction);
+        }
+
+        // GROUP BY für AVG Berechnung
+        sql.append("GROUP BY m.id ");
+
+        // Filter: Min Rating (nach GROUP BY als HAVING)
+        if (minRating != null && minRating > 0) {
+            sql.append("HAVING COALESCE(AVG(r.score), 0) >= ? ");
+            params.add(minRating);
+        }
+
+        // Sortierung
+        sql.append("ORDER BY ");
+        if (sortBy != null) {
+            switch (sortBy.toLowerCase()) {
+                case "title" -> sql.append("m.title ASC");
+                case "year" -> sql.append("m.release_year DESC NULLS LAST");
+                case "score" -> sql.append("avg_rating DESC");
+                default -> sql.append("m.id ASC");
+            }
+        } else {
+            sql.append("m.id ASC");
+        }
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            // Parameter setzen
+            for (int i = 0; i < params.size(); i++) {
+                Object param = params.get(i);
+                if (param instanceof String) {
+                    stmt.setString(i + 1, (String) param);
+                } else if (param instanceof Integer) {
+                    stmt.setInt(i + 1, (Integer) param);
+                } else if (param instanceof Double) {
+                    stmt.setDouble(i + 1, (Double) param);
+                }
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                mediaList.add(mapResultSetToMedia(rs));
+            }
+            return mediaList;
+        } catch (SQLException e) {
+            throw new RuntimeException("Fehler bei Suche/Filter: " + e.getMessage(), e);
+        }
+    }
+
     private Media mapResultSetToMedia(ResultSet rs) throws SQLException {
         Media media = new Media();
         media.setId(rs.getLong("id"));

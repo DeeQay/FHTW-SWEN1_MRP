@@ -55,6 +55,15 @@ public class MediaService {
         //return new ArrayList<>(mediaStore.values());
     }
 
+
+    // Alle Parameter sind optional (null = kein Filter).
+    public List<Media> searchMedia(String title, String genre, String mediaType,
+                                   Integer releaseYear, String ageRestriction, Double minRating, String sortBy) {
+        return DatabaseConnection.executeInTransaction(conn ->
+            mediaDAO.findWithFilters(conn, title, genre, mediaType, releaseYear, ageRestriction, minRating, sortBy)
+        );
+    }
+
     public Media getMediaById(Long id) {
         return DatabaseConnection.executeInTransaction(conn -> {
             Media media = mediaDAO.findById(conn, id);

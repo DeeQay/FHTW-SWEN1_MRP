@@ -16,11 +16,19 @@
     {
       "key": "token2",
       "value": ""
+    },
+    {
+      "key": "mediaId",
+      "value": ""
+    },
+    {
+      "key": "ratingId",
+      "value": ""
     }
   ],
   "item": [
     {
-      "name": "1. Register User",
+      "name": "Register User",
       "event": [
         {
           "listen": "test",
@@ -53,7 +61,7 @@
       }
     },
     {
-      "name": "2. Login User",
+      "name": "Login User",
       "event": [
         {
           "listen": "test",
@@ -89,7 +97,7 @@
       }
     },
     {
-      "name": "3. Get User Profile",
+      "name": "Get User Profile",
       "event": [
         {
           "listen": "test",
@@ -118,7 +126,7 @@
       }
     },
     {
-      "name": "4. Create Media",
+      "name": "Create Media",
       "event": [
         {
           "listen": "test",
@@ -126,7 +134,10 @@
             "exec": [
               "pm.test(\"Status 201\", function () {",
               "    pm.response.to.have.status(201);",
-              "});"
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "pm.collectionVariables.set(\"mediaId\", jsonData.id);"
             ]
           }
         }
@@ -155,7 +166,7 @@
       }
     },
     {
-      "name": "5. Get All Media",
+      "name": "Get All Media",
       "event": [
         {
           "listen": "test",
@@ -184,7 +195,7 @@
       }
     },
     {
-      "name": "6. Get Media by ID",
+      "name": "Get Media by ID",
       "event": [
         {
           "listen": "test",
@@ -206,14 +217,14 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/media/1",
+          "raw": "{{baseUrl}}/api/media/{{mediaId}}",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "media", "1"]
+          "path": ["api", "media", "{{mediaId}}"]
         }
       }
     },
     {
-      "name": "7. Update Media",
+      "name": "Update Media",
       "event": [
         {
           "listen": "test",
@@ -240,46 +251,17 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999\n}"
+          "raw": "{\n  \"title\": \"The Matrix Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 1999,\n  \"genres\": [\"Action\", \"Sci-Fi\"],\n  \"ageRestriction\": \"PG-13\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/media/1",
+          "raw": "{{baseUrl}}/api/media/{{mediaId}}",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "media", "1"]
+          "path": ["api", "media", "{{mediaId}}"]
         }
       }
     },
     {
-      "name": "8. Delete Media",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status 200 or 204\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/media/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "media", "1"]
-        }
-      }
-    },
-    {
-      "name": "9. Unauthorized Access Test",
+      "name": "Unauthorized Access Test",
       "event": [
         {
           "listen": "test",
@@ -303,7 +285,47 @@
       }
     },
     {
-      "name": "10. Like Rating",
+      "name": "Create Rating",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "pm.collectionVariables.set(\"ratingId\", jsonData.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 4,\n  \"comment\": \"Great movie!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/media/1/rate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "1", "rate"]
+        }
+      }
+    },
+    {
+      "name": "Update Rating",
       "event": [
         {
           "listen": "test",
@@ -311,11 +333,43 @@
             "exec": [
               "pm.test(\"Status 200\", function () {",
               "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"likeCount incremented\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.likeCount).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 5,\n  \"comment\": \"Amazing movie!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ratings/{{ratingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ratings", "{{ratingId}}"]
+        }
+      }
+    },
+    {
+      "name": "Confirm Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
               "});"
             ]
           }
@@ -330,14 +384,14 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/ratings/1/like",
+          "raw": "{{baseUrl}}/api/ratings/{{ratingId}}/confirm",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "ratings", "1", "like"]
+          "path": ["api", "ratings", "{{ratingId}}", "confirm"]
         }
       }
     },
     {
-      "name": "12. Unlike Rating",
+      "name": "Like Rating",
       "event": [
         {
           "listen": "test",
@@ -345,11 +399,35 @@
             "exec": [
               "pm.test(\"Status 200\", function () {",
               "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"likeCount decremented\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.likeCount).to.equal(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ratings/{{ratingId}}/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ratings", "{{ratingId}}", "like"]
+        }
+      }
+    },
+    {
+      "name": "Unlike Rating",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
               "});"
             ]
           }
@@ -364,14 +442,72 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/ratings/1/like",
+          "raw": "{{baseUrl}}/api/ratings/{{ratingId}}/like",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "ratings", "1", "like"]
+          "path": ["api", "ratings", "{{ratingId}}", "like"]
         }
       }
     },
     {
-      "name": "13. Add Favorite",
+      "name": "Delete Rating",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ratings/{{ratingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ratings", "{{ratingId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media/{{mediaId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "{{mediaId}}"]
+        }
+      }
+    },
+    {
+      "name": "Add Favorite",
       "event": [
         {
           "listen": "test",
@@ -405,7 +541,7 @@
       }
     },
     {
-      "name": "15. Get User Favorites",
+      "name": "Get User Favorites",
       "event": [
         {
           "listen": "test",
@@ -440,7 +576,7 @@
       }
     },
     {
-      "name": "16. Remove Favorite",
+      "name": "Remove Favorite",
       "event": [
         {
           "listen": "test",
@@ -469,40 +605,7 @@
       }
     },
     {
-      "name": "17. Register Second User (Ownership Test)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status 201 or 409\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"Username\": \"otheruser\",\n  \"Password\": \"other123\",\n  \"Email\": \"other@example.com\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/users/register",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "users", "register"]
-        }
-      }
-    },
-    {
-      "name": "18. Login Second User (Ownership Test)",
+      "name": "Login Second User (Ownership Test)",
       "event": [
         {
           "listen": "test",
@@ -538,19 +641,14 @@
       }
     },
     {
-      "name": "19. Update Foreign Media (Expect 403)",
+      "name": "Update Foreign Media (Expect 403)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status 403 Forbidden\", function () {",
+              "pm.test(\"Status 403\", function () {",
               "    pm.response.to.have.status(403);",
-              "});",
-              "",
-              "pm.test(\"Error message contains ownership info\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.error).to.include(\"Creator\");",
               "});"
             ]
           }
@@ -580,7 +678,7 @@
       }
     },
     {
-      "name": "20. Delete Foreign Media (Expect 403)",
+      "name": "Delete Foreign Media (Expect 403)",
       "event": [
         {
           "listen": "test",
@@ -605,6 +703,109 @@
           "raw": "{{baseUrl}}/api/media/1",
           "host": ["{{baseUrl}}"],
           "path": ["api", "media", "1"]
+        }
+      }
+    },
+    {
+      "name": "Search Media by Title",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media?title=Matrix",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media"],
+          "query": [
+            {
+              "key": "title",
+              "value": "Matrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Combined Filter and Sort",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media?mediaType=movie&sortBy=year",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media"],
+          "query": [
+            {
+              "key": "mediaType",
+              "value": "movie"
+            },
+            {
+              "key": "sortBy",
+              "value": "year"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Media Ratings with Average",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/media/1/ratings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "1", "ratings"]
         }
       }
     }

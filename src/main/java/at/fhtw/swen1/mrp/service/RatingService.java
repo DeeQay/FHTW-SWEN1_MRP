@@ -119,6 +119,25 @@ public class RatingService {
         return DatabaseConnection.executeInTransaction(conn -> ratingDAO.findByMediaId(conn, mediaId));
     }
 
+    // Ratings für Public View: Kommentare werden gefiltert (nur confirmed sichtbar)
+    public List<Rating> getRatingsByMediaIdPublic(Long mediaId, Long currentUserId) {
+        return DatabaseConnection.executeInTransaction(conn -> {
+            List<Rating> ratings = ratingDAO.findByMediaId(conn, mediaId);
+
+            // nur confirmed Kommentare oder eigene Kommentare sichtbar
+            for (Rating rating : ratings) {
+                if (rating.getComment() != null && !rating.getComment().isEmpty()) {
+                    // Wenn nicht confirmed & nicht der eigene User -> Kommentar ausblenden
+                    if (!rating.getIsConfirmed() && !rating.getUserId().equals(currentUserId)) {
+                        rating.setComment(null);
+                    }
+                }
+            }
+
+            return ratings;
+        });
+    }
+
     // Rating History eines Users
     public List<Rating> getRatingsByUserId(Long userId) {
         return DatabaseConnection.executeInTransaction(conn -> ratingDAO.findByUserId(conn, userId));

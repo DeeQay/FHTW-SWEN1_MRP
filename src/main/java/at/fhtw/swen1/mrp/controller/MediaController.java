@@ -1,9 +1,13 @@
 package at.fhtw.swen1.mrp.controller;
 
 import at.fhtw.swen1.mrp.dto.request.MediaRequest;
+import at.fhtw.swen1.mrp.dto.response.MediaRatingsResponse;
 import at.fhtw.swen1.mrp.dto.response.MediaResponse;
+import at.fhtw.swen1.mrp.dto.response.RatingResponse;
+import at.fhtw.swen1.mrp.entity.Rating;
 import at.fhtw.swen1.mrp.service.MediaService;
 import at.fhtw.swen1.mrp.service.AuthService;
+import at.fhtw.swen1.mrp.service.RatingService;
 import at.fhtw.swen1.mrp.service.UserService;
 import at.fhtw.swen1.mrp.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
@@ -11,19 +15,24 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * MediaController verwaltet media-bezogene HTTP Endpoints
  */
 public class MediaController {
     private final MediaService mediaService;
+    private final RatingService ratingService;
     private final AuthService authService;
     private final UserService userService;
 
     public MediaController() {
         this.mediaService = new MediaService();
+        this.ratingService = new RatingService();
         this.authService = new AuthService();
         this.userService = new UserService();
     }
@@ -43,6 +52,15 @@ public class MediaController {
                 case "POST" -> handleCreateMedia(exchange);
                 case "GET" -> handleGetAllMedia(exchange);
                 default -> sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
+            }
+        } else if (path.matches("/api/media/\\d+/ratings")) {
+            // GET /api/media/{mediaId}/ratings - Ratings mit Average abrufen
+            if ("GET".equals(method)) {
+                String[] pathParts = path.split("/");
+                String mediaId = pathParts[3];
+                handleGetMediaRatings(exchange, mediaId);
+            } else {
+                sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
             }
         } else if (path.matches("/api/media/\\d+")) {
             // Media ID aus Pfad extrahieren
@@ -96,7 +114,43 @@ public class MediaController {
 
     private void handleGetAllMedia(HttpExchange exchange) throws IOException {
         try {
-            List<at.fhtw.swen1.mrp.entity.Media> mediaList = mediaService.getAllMedia();
+            // Query-Parameter extrahieren
+            Map<String, String> queryParams = parseQueryParams(exchange.getRequestURI().getQuery());
+
+            String title = queryParams.get("title");
+            String genre = queryParams.get("genre");
+            String mediaType = queryParams.get("mediaType");
+            String ageRestriction = queryParams.get("ageRestriction");
+            String sortBy = queryParams.get("sortBy");
+
+            // Integer Parameter parsen
+            Integer releaseYear = null;
+            if (queryParams.containsKey("releaseYear")) {
+                try {
+                    releaseYear = Integer.parseInt(queryParams.get("releaseYear"));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            // Rating Parameter parsen (minRating)
+            Double minRating = null;
+            if (queryParams.containsKey("rating")) {
+                try {
+                    minRating = Double.parseDouble(queryParams.get("rating"));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            // Entscheide ob Filter aktiv sind
+            boolean hasFilters = title != null || genre != null || mediaType != null ||
+                                 releaseYear != null || ageRestriction != null ||
+                                 minRating != null || sortBy != null;
+
+            List<at.fhtw.swen1.mrp.entity.Media> mediaList;
+            if (hasFilters) {
+                mediaList = mediaService.searchMedia(title, genre, mediaType, releaseYear,
+                                                      ageRestriction, minRating, sortBy);
+            } else {
+                mediaList = mediaService.getAllMedia();
+            }
 
             List<MediaResponse> responseList = mediaList.stream()
                     .map(m -> new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
@@ -107,6 +161,26 @@ public class MediaController {
         } catch (Exception e) {
             sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
         }
+    }
+
+
+    // Parst Query-String in Map.
+    // Bsp: "title=Matrix&genre=Action" -> {title: Matrix, genre: Action}
+    private Map<String, String> parseQueryParams(String query) {
+        Map<String, String> params = new HashMap<>();
+        if (query == null || query.isBlank()) {
+            return params;
+        }
+        String[] pairs = query.split("&");
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2);
+            if (keyValue.length == 2) {
+                String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
+                String value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8);
+                params.put(key, value);
+            }
+        }
+        return params;
     }
 
     private void handleGetMedia(HttpExchange exchange, String mediaId) throws IOException {
@@ -128,6 +202,47 @@ public class MediaController {
             sendResponse(exchange, 200, JsonUtil.toJson(response));
         } catch (Exception e) {
             sendResponse(exchange, 404, "{\"error\":\"Media not found\"}");
+        }
+    }
+
+
+     // Gibt Ratings mit Average Score zurück, nur confirmed sichtbar
+    private void handleGetMediaRatings(HttpExchange exchange, String mediaIdStr) throws IOException {
+        try {
+            Long mediaId = Long.parseLong(mediaIdStr);
+            Long userId = getUserIdFromToken(exchange);
+
+            // Ratings mit Kommentar-Filter
+            List<Rating> ratings = ratingService.getRatingsByMediaIdPublic(mediaId, userId);
+
+            Double averageRating = ratingService.calculateAverageRating(mediaId);
+
+            // Response DTO erstellen
+            List<RatingResponse> ratingResponses = ratings.stream()
+                    .map(r -> new RatingResponse(
+                            r.getId(),
+                            r.getUserId(),
+                            r.getMediaId(),
+                            r.getScore(),
+                            r.getComment(),
+                            r.getIsConfirmed(),
+                            r.getLikeCount(),
+                            r.getCreatedAt(),
+                            r.getUpdatedAt()
+                    ))
+                    .collect(java.util.stream.Collectors.toList());
+
+            MediaRatingsResponse response = new MediaRatingsResponse(
+                    averageRating,
+                    ratings.size(),
+                    ratingResponses
+            );
+
+            sendResponse(exchange, 200, JsonUtil.toJson(response));
+        } catch (NumberFormatException e) {
+            sendResponse(exchange, 400, "{\"error\":\"Invalid media ID\"}");
+        } catch (Exception e) {
+            sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
         }
     }
 
