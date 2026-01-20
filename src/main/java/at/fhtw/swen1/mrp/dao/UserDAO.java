@@ -1,8 +1,11 @@
 package at.fhtw.swen1.mrp.dao;
 
+import at.fhtw.swen1.mrp.dto.response.LeaderboardEntryResponse;
 import at.fhtw.swen1.mrp.entity.User;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
 
@@ -71,5 +74,35 @@ public class UserDAO {
         }
 
         return user;
+    }
+
+    // Leaderboard: Top 10 Users nach Anzahl Ratings
+    public List<LeaderboardEntryResponse> findLeaderboard(Connection conn, int limit) {
+        String sql = """
+            SELECT u.username, COUNT(r.id) as rating_count
+            FROM users u
+            LEFT JOIN ratings r ON u.id = r.user_id
+            GROUP BY u.id, u.username
+            HAVING COUNT(r.id) > 0
+            ORDER BY rating_count DESC
+            LIMIT ?
+            """;
+        List<LeaderboardEntryResponse> leaderboard = new ArrayList<>();
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                LeaderboardEntryResponse entry = new LeaderboardEntryResponse(
+                        rs.getString("username"),
+                        rs.getInt("rating_count")
+                );
+                leaderboard.add(entry);
+            }
+            return leaderboard;
+        } catch (SQLException e) {
+            throw new RuntimeException("Fehler beim Laden des Leaderboards: " + e.getMessage(), e);
+        }
     }
 }

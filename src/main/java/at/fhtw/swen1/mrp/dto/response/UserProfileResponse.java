@@ -17,6 +17,5 @@ public class UserProfileResponse {
     private String username;
     private String email;
     private LocalDateTime createdAt;
-
-    // TODO: User-Stats hinzufügen
+    private UserStatisticsResponse statistics;
 }

@@ -35,6 +35,9 @@ public class HttpServer {
         server.createContext("/api/users/register", authController::handleRegister);
         server.createContext("/api/users/login", authController::handleLogin);
 
+        // Leaderboard
+        server.createContext("/api/leaderboard", userController::handleLeaderboard);
+
         // User Routes (inkl. Favorites)
         server.createContext("/api/users", exchange -> {
             String path = exchange.getRequestURI().getPath();

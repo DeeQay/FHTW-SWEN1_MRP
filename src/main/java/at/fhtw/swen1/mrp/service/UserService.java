@@ -1,12 +1,21 @@
 package at.fhtw.swen1.mrp.service;
 
+import at.fhtw.swen1.mrp.dao.MediaDAO;
+import at.fhtw.swen1.mrp.dao.RatingDAO;
 import at.fhtw.swen1.mrp.dao.UserDAO;
+import at.fhtw.swen1.mrp.dto.response.LeaderboardEntryResponse;
+import at.fhtw.swen1.mrp.dto.response.UserStatisticsResponse;
+import at.fhtw.swen1.mrp.entity.Media;
+import at.fhtw.swen1.mrp.entity.Rating;
 import at.fhtw.swen1.mrp.entity.User;
 import at.fhtw.swen1.mrp.util.DatabaseConnection;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserService {
     // OLD: Memory Map statt DAO mit Datenbank
@@ -14,9 +23,20 @@ public class UserService {
     //private static long userIdCounter = 1L;
 
     private final UserDAO userDAO;
+    private final RatingDAO ratingDAO;
+    private final MediaDAO mediaDAO;
 
     public UserService() {
         this.userDAO = new UserDAO();
+        this.ratingDAO = new RatingDAO();
+        this.mediaDAO = new MediaDAO();
+    }
+
+    // Constructor für Tests
+    public UserService(UserDAO userDAO, RatingDAO ratingDAO, MediaDAO mediaDAO) {
+        this.userDAO = userDAO;
+        this.ratingDAO = ratingDAO;
+        this.mediaDAO = mediaDAO;
     }
 
     public User registerUser(String username, String password, String email) {
@@ -101,5 +121,54 @@ public class UserService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 nicht verfügbar", e);
         }
+    }
+
+    // User Statistics berechnen (totalRatings, avgScore, favoriteGenre)
+    public UserStatisticsResponse getUserStatistics(Long userId) {
+        return DatabaseConnection.executeInTransaction(conn -> {
+            List<Rating> ratings = ratingDAO.findByUserId(conn, userId);
+
+            // Ratings empty
+            if (ratings.isEmpty()) {
+                return new UserStatisticsResponse(0, null, null);
+            }
+
+            int totalRatings = ratings.size();
+
+            // average Score berechnen
+            double avgScore = ratings.stream()
+                    .mapToInt(Rating::getScore)
+                    .average()
+                    .orElse(0.0);
+
+            // Favorite Genre (meistbewertetes Genre)
+            Map<String, Integer> genreCount = new HashMap<>();
+            for (Rating rating : ratings) {
+                Media media = mediaDAO.findById(conn, rating.getMediaId());
+                if (media != null && media.getGenres() != null) {
+                    for (String genre : media.getGenres()) {
+                        genreCount.merge(genre, 1, Integer::sum);
+                    }
+                }
+            }
+
+            // Genre mit höchster Anzahl finden
+            String favoriteGenre = genreCount.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+
+            return new UserStatisticsResponse(totalRatings, avgScore, favoriteGenre);
+        });
+    }
+
+    // Rating History eines Users laden
+    public List<Rating> getUserRatings(Long userId) {
+        return DatabaseConnection.executeInTransaction(conn -> ratingDAO.findByUserId(conn, userId));
+    }
+
+    // Leaderboard: Top Users nach Anzahl Ratings
+    public List<LeaderboardEntryResponse> getLeaderboard(int limit) {
+        return DatabaseConnection.executeInTransaction(conn -> userDAO.findLeaderboard(conn, limit));
     }
 }

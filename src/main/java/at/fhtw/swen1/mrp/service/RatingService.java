@@ -9,9 +9,6 @@ import at.fhtw.swen1.mrp.util.DatabaseConnection;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Service für Rating Business Logic
- */
 public class RatingService {
 
     private final RatingDAO ratingDAO;
@@ -20,6 +17,12 @@ public class RatingService {
     public RatingService() {
         this.ratingDAO = new RatingDAO();
         this.ratingLikeDAO = new RatingLikeDAO();
+    }
+
+    // Constructor Injection für Testbarkeit
+    public RatingService(RatingDAO ratingDAO, RatingLikeDAO ratingLikeDAO) {
+        this.ratingDAO = ratingDAO;
+        this.ratingLikeDAO = ratingLikeDAO;
     }
 
     // Rating erstellen (1 pro User pro Media)
