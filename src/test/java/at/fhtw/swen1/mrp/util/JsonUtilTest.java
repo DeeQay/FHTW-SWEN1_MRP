@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit Tests für JsonUtil
- * Testet JSON Serialisierung und Deserialisierung
- * Gesamt: 4 Test-Methoden
  */
 class JsonUtilTest {
 

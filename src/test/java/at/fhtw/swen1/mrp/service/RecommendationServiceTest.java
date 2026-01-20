@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit Tests für RecommendationService
- * Testet Genre-basierte Empfehlungen
  */
 class RecommendationServiceTest {
 

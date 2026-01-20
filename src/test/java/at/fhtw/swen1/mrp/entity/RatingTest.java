@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit Tests für Rating Entity
- * Testet Rating-Objekt Funktionalität
  */
 class RatingTest {
 

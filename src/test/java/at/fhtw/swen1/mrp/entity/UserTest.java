@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit Tests für User Entity
- * Testet User-Objekt Funktionalität
  */
 class UserTest {
 

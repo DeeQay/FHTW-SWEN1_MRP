@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit Tests für RatingService
- * Testet Rating Business-Logik
  */
 class RatingServiceTest {
 

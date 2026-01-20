@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit Tests für UserService
- * Testet Statistics und Leaderboard Funktionen
  */
 class UserServiceTest {
 

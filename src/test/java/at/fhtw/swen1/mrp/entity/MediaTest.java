@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit Tests für Media Entity
- * Testet Media-Objekt Funktionalität
  */
 class MediaTest {
 

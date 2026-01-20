@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit Tests für AuthService
- * Testet Token-Generierung und -Validierung
  */
 class AuthServiceTest {
 
