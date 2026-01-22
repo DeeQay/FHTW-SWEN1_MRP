@@ -1,5 +1,6 @@
 package at.fhtw.swen1.mrp.controller;
 
+import at.fhtw.swen1.mrp.dto.request.ProfileUpdateRequest;
 import at.fhtw.swen1.mrp.dto.response.LeaderboardEntryResponse;
 import at.fhtw.swen1.mrp.dto.response.UserProfileResponse;
 import at.fhtw.swen1.mrp.dto.response.UserStatisticsResponse;
@@ -13,6 +14,7 @@ import at.fhtw.swen1.mrp.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -30,10 +32,17 @@ public class UserController {
 
     public void handleUser(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
+        String method = exchange.getRequestMethod();
 
         // Check if path matches /api/users/{username}/profile
         if (path.matches("/api/users/[^/]+/profile")) {
-            handleGetProfile(exchange);
+            if ("GET".equals(method)) {
+                handleGetProfile(exchange);
+            } else if ("PUT".equals(method)) {
+                handlePutProfile(exchange);
+            } else {
+                sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
+            }
         } else if (path.matches("/api/users/[^/]+/ratings")) {
             handleGetRatings(exchange);
         } else if (path.matches("/api/users/[^/]+/recommendations")) {
@@ -44,11 +53,6 @@ public class UserController {
     }
 
     private void handleGetProfile(HttpExchange exchange) throws IOException {
-        if (!"GET".equals(exchange.getRequestMethod())) {
-            sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
-            return;
-        }
-
         if (!isAuthenticated(exchange)) {
             sendResponse(exchange, 401, "{\"error\":\"Unauthorized\"}");
             return;
@@ -78,6 +82,67 @@ public class UserController {
 
             String response = JsonUtil.toJson(profile);
             sendResponse(exchange, 200, response);
+        } catch (Exception e) {
+            sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
+        }
+    }
+
+    // Profile (Email) aktualisieren
+    private void handlePutProfile(HttpExchange exchange) throws IOException {
+        if (!isAuthenticated(exchange)) {
+            sendResponse(exchange, 401, "{\"error\":\"Unauthorized\"}");
+            return;
+        }
+
+        try {
+            String path = exchange.getRequestURI().getPath();
+            String[] parts = path.split("/");
+
+            // Validiere Path-Format
+            if (parts.length < 4) {
+                sendResponse(exchange, 400, "{\"error\":\"Invalid path\"}");
+                return;
+            }
+
+            String username = parts[3]; // /api/users/{username}/profile
+
+            // User aus Token extrahieren
+            String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+            String token = authHeader.substring(7);
+
+            // Request Body lesen
+            String requestBody = readRequestBody(exchange);
+            ProfileUpdateRequest request = JsonUtil.fromJson(requestBody, ProfileUpdateRequest.class);
+
+            // Validiere Email vorhanden
+            if (request == null || request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                sendResponse(exchange, 400, "{\"error\":\"Email is required\"}");
+                return;
+            }
+
+            String requestingUsername = authService.getUsernameFromToken(token);
+            // Ownership check
+            if (!requestingUsername.equals(username)) {
+                sendResponse(exchange, 403, "{\"error\":\"You can only edit your own profile\"}");
+                return;
+            }
+
+            User updatedUser = userService.updateUserProfile(username, request.getEmail());
+
+            // Updated Profile Response
+            UserStatisticsResponse statistics = userService.getUserStatistics(updatedUser.getId());
+            UserProfileResponse profile = new UserProfileResponse(
+                    updatedUser.getUsername(),
+                    updatedUser.getEmail() != null ? updatedUser.getEmail() : "",
+                    updatedUser.getCreatedAt(),
+                    statistics
+            );
+
+            String response = JsonUtil.toJson(profile);
+            sendResponse(exchange, 200, response);
+        } catch (IllegalArgumentException e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "Invalid request";
+            sendResponse(exchange, 403, "{\"error\":\"" + errorMsg + "\"}");
         } catch (Exception e) {
             sendResponse(exchange, 500, "{\"error\":\"Internal server error\"}");
         }
@@ -168,6 +233,12 @@ public class UserController {
         }
         String token = authHeader.substring(7);
         return authService.validateToken(token);
+    }
+
+    private String readRequestBody(HttpExchange exchange) throws IOException {
+        try (InputStream is = exchange.getRequestBody()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {

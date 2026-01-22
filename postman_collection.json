@@ -105,6 +105,11 @@
             "exec": [
               "pm.test(\"Status 200\", function () {",
               "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Profile contains statistics\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('statistics');",
               "});"
             ]
           }
@@ -118,6 +123,48 @@
             "value": "Bearer {{token}}"
           }
         ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/testuser/profile",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "testuser", "profile"]
+        }
+      }
+    },
+    {
+      "name": "Update User Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Email updated\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.email).to.eql('updated@example.com');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Email\": \"updated@example.com\"\n}"
+        },
         "url": {
           "raw": "{{baseUrl}}/api/users/testuser/profile",
           "host": ["{{baseUrl}}"],

@@ -31,7 +31,7 @@ public class RecommendationService {
             // User Ratings laden
             List<Rating> userRatings = ratingDAO.findByUserId(conn, userId);
 
-            // Fall: keine Ratings vorhanden
+            // keine Ratings
             if (userRatings.isEmpty()) {
                 return Collections.emptyList();
             }
@@ -59,7 +59,7 @@ public class RecommendationService {
                     .map(Map.Entry::getKey)
                     .toList();
 
-            // Fall: keine Genres gefunden
+            // keine Genres
             if (topGenres.isEmpty()) {
                 return Collections.emptyList();
             }

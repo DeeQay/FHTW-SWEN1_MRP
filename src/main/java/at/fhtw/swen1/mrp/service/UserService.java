@@ -171,4 +171,22 @@ public class UserService {
     public List<LeaderboardEntryResponse> getLeaderboard(int limit) {
         return DatabaseConnection.executeInTransaction(conn -> userDAO.findLeaderboard(conn, limit));
     }
+
+    // User Profile (Email) aktualisieren
+    public User updateUserProfile(String username, String newEmail) {
+        return DatabaseConnection.executeInTransaction(conn -> {
+            User user = userDAO.findByUsername(conn, username);
+            if (user == null) {
+                throw new IllegalArgumentException("User nicht gefunden");
+            }
+
+            if (newEmail == null || newEmail.trim().isEmpty()) {
+                throw new IllegalArgumentException("Email darf nicht leer sein");
+            }
+
+            user.setEmail(newEmail.trim());
+            userDAO.update(conn, user);
+            return user;
+        });
+    }
 }

@@ -44,9 +44,7 @@ public class DatabaseConnection {
         }
     }
 
-    /**
-     * Führt eine Transaktion aus und gibt ein Ergebnis zurück.
-     */
+    // Führt eine Transaktion aus und gibt ein Ergebnis zurück.
     public static <T> T executeInTransaction(Function<Connection, T> operation) {
         Connection conn = null;
         try {
@@ -70,9 +68,7 @@ public class DatabaseConnection {
         }
     }
 
-    /**
-     * Führt eine Transaktion ohne Rückgabewert aus.
-     */
+    // Führt eine Transaktion ohne Rückgabewert aus.
     public static void executeInTransactionVoid(TransactionConsumer operation) {
         executeInTransaction(conn -> {
             try {

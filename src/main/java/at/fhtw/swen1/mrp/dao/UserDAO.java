@@ -61,6 +61,19 @@ public class UserDAO {
         }
     }
 
+    // User Email aktualisieren
+    public void update(Connection conn, User user) {
+        String sql = "UPDATE users SET email = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getEmail());
+            stmt.setLong(2, user.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Fehler beim Aktualisieren des Users: " + e.getMessage(), e);
+        }
+    }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getLong("id"));

@@ -77,8 +77,7 @@ public class RatingService {
         });
     }
 
-    // Kommentar bestätigen (in pdf steht "moderation", aber nur der Verfasser soll bestätigen??)
-    // specification pdf: requires confirmation by the creator before the comment becomes publicly visible (moderation feature) o comments are not publicly visible until confirmed by the author
+    // Kommentar bestätigen
     public Rating confirmComment(Long ratingId, Long userId) {
         return DatabaseConnection.executeInTransaction(conn -> {
             Rating rating = ratingDAO.findById(conn, ratingId);
