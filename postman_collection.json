@@ -952,6 +952,46 @@
           "path": ["api", "users", "testuser", "recommendations"]
         }
       }
+    },
+    {
+      "name": "Get User Recommendations (Content-based)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response ist Array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/testuser/recommendations?type=content",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "testuser", "recommendations"],
+          "query": [
+            {
+              "key": "type",
+              "value": "content"
+            }
+          ]
+        }
+      }
     }
   ]
 }

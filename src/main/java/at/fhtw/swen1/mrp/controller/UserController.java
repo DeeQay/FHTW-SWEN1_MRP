@@ -179,7 +179,7 @@ public class UserController {
         }
     }
 
-    // Recommendations: Genre-basierte Empfehlungen
+    // Recommendations: Genre oder Content basierte Empfehlungen
     private void handleGetRecommendations(HttpExchange exchange) throws IOException {
         if (!"GET".equals(exchange.getRequestMethod())) {
             sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
@@ -202,7 +202,26 @@ public class UserController {
                 return;
             }
 
-            List<Media> recommendations = recommendationService.getRecommendationsByGenre(user.getId(), 10);
+            // Query Parameter: ?type=genre|content (default: genre)
+            String query = exchange.getRequestURI().getQuery();
+            String type = "genre"; // default
+            if (query != null && !query.isEmpty()) {
+                for (String param : query.split("&")) {
+                    String[] keyValue = param.split("=");
+                    if (keyValue.length == 2 && "type".equals(keyValue[0])) {
+                        type = keyValue[1];
+                    }
+                }
+            }
+
+            // Recommendations basierend auf type abrufen
+            List<Media> recommendations;
+            if ("content".equalsIgnoreCase(type)) {
+                recommendations = recommendationService.getRecommendationsByContent(user.getId(), 10);
+            } else {
+                recommendations = recommendationService.getRecommendationsByGenre(user.getId(), 10);
+            }
+
             String response = JsonUtil.toJson(recommendations);
             sendResponse(exchange, 200, response);
         } catch (Exception e) {
