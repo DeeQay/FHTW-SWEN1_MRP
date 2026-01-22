@@ -217,6 +217,11 @@ public class UserController {
             return;
         }
 
+        if (!isAuthenticated(exchange)) {
+            sendResponse(exchange, 401, "{\"error\":\"Unauthorized\"}");
+            return;
+        }
+
         try {
             List<LeaderboardEntryResponse> leaderboard = userService.getLeaderboard(10);
             String response = JsonUtil.toJson(leaderboard);

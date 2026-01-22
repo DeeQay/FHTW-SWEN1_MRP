@@ -94,9 +94,9 @@ class UserServiceTest {
     void testGetLeaderboard_ShouldReturnTopUsers() {
         // Arrange: Leaderboard mit 3 Einträgen
         List<LeaderboardEntryResponse> leaderboard = Arrays.asList(
-                new LeaderboardEntryResponse("alice", 10),
-                new LeaderboardEntryResponse("bob", 8),
-                new LeaderboardEntryResponse("charlie", 5)
+                new LeaderboardEntryResponse(1, "alice", 10),
+                new LeaderboardEntryResponse(2, "bob", 8),
+                new LeaderboardEntryResponse(3, "charlie", 5)
         );
 
         when(userDAO.findLeaderboard(any(Connection.class), eq(10))).thenReturn(leaderboard);
@@ -107,8 +107,18 @@ class UserServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(3, result.size());
+
+        assertEquals(1, result.get(0).getRank());
         assertEquals("alice", result.get(0).getUsername());
         assertEquals(10, result.get(0).getRatingCount());
+
+        assertEquals(2, result.get(1).getRank());
+        assertEquals("bob", result.get(1).getUsername());
+        assertEquals(8, result.get(1).getRatingCount());
+
+        assertEquals(3, result.get(2).getRank());
+        assertEquals("charlie", result.get(2).getUsername());
+        assertEquals(5, result.get(2).getRatingCount());
     }
 
     @Test

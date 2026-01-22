@@ -94,9 +94,8 @@ public class UserDAO {
         String sql = """
             SELECT u.username, COUNT(r.id) as rating_count
             FROM users u
-            LEFT JOIN ratings r ON u.id = r.user_id
+            INNER JOIN ratings r ON u.id = r.user_id
             GROUP BY u.id, u.username
-            HAVING COUNT(r.id) > 0
             ORDER BY rating_count DESC
             LIMIT ?
             """;
@@ -106,8 +105,10 @@ public class UserDAO {
             stmt.setInt(1, limit);
             ResultSet rs = stmt.executeQuery();
 
+            int rank = 1;
             while (rs.next()) {
                 LeaderboardEntryResponse entry = new LeaderboardEntryResponse(
+                        rank++,
                         rs.getString("username"),
                         rs.getInt("rating_count")
                 );

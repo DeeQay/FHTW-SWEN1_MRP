@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LeaderboardEntryResponse {
+    private int rank;
     private String username;
     private int ratingCount;
 }
