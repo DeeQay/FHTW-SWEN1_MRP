@@ -372,6 +372,43 @@
       }
     },
     {
+      "name": "Create Duplicate Rating (Expect 409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 3,\n  \"comment\": \"Duplicate rating attempt\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/media/1/rate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media", "1", "rate"]
+        }
+      }
+    },
+    {
       "name": "Update Rating",
       "event": [
         {
@@ -648,6 +685,39 @@
           "raw": "{{baseUrl}}/api/media/1/favorite",
           "host": ["{{baseUrl}}"],
           "path": ["api", "media", "1", "favorite"]
+        }
+      }
+    },
+    {
+      "name": "Register Second User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Username\": \"otheruser\",\n  \"Password\": \"other123\",\n  \"Email\": \"other@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "register"]
         }
       }
     },

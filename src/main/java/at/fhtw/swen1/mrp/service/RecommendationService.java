@@ -19,7 +19,7 @@ public class RecommendationService {
         this.mediaDAO = new MediaDAO();
     }
 
-    // Constructor Injection für Testbarkeit
+    // Constructor zum Testen
     public RecommendationService(RatingDAO ratingDAO, MediaDAO mediaDAO) {
         this.ratingDAO = ratingDAO;
         this.mediaDAO = mediaDAO;

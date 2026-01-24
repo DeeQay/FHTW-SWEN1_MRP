@@ -21,6 +21,12 @@ public class FavoriteService {
         this.mediaDAO = new MediaDAO();
     }
 
+    // Constructor für Tests
+    public FavoriteService(FavoriteDAO favoriteDAO, MediaDAO mediaDAO) {
+        this.favoriteDAO = favoriteDAO;
+        this.mediaDAO = mediaDAO;
+    }
+
     // Media als Favorit markieren
     public Favorite addFavorite(Long userId, Long mediaId) {
         return DatabaseConnection.executeInTransaction(conn -> {

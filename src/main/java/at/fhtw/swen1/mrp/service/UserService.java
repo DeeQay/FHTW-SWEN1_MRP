@@ -18,9 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 public class UserService {
-    // OLD: Memory Map statt DAO mit Datenbank
-    //private static final Map<String, User> userStore = new ConcurrentHashMap<>();
-    //private static long userIdCounter = 1L;
 
     private final UserDAO userDAO;
     private final RatingDAO ratingDAO;
@@ -57,19 +54,6 @@ public class UserService {
 
             userDAO.save(conn, user);
             return user;
-            // OLD: Memory Map statt DAO mit Datenbank
-            //if (userStore.containsKey(username)) {
-            //    throw new IllegalArgumentException("Username bereits vorhanden");
-            //}
-            //String hashedPassword = hashPassword(password);
-            //User user = new User();
-            //user.setId(userIdCounter++);
-            //user.setUsername(username);
-            //user.setPasswordHash(hashedPassword);
-            //user.setEmail(email);
-            //user.setCreatedAt(LocalDateTime.now());
-            //userStore.put(username, user);
-            //return user;
         });
     }
 
@@ -86,25 +70,11 @@ public class UserService {
             }
 
             return user;
-
-            // OLD: Memory Map statt DAO mit Datenbank
-            //User user = userStore.get(username);
-            //if (user == null) {
-            //    throw new IllegalArgumentException("Ungültige Credentials");
-            //}
-            //String hashedPassword = hashPassword(password);
-            //if (!user.getPasswordHash().equals(hashedPassword)) {
-            //    throw new IllegalArgumentException("Ungültige Credentials");
-            //}
-            //return user;
         });
     }
 
     public User getUserByUsername(String username) {
         return DatabaseConnection.executeInTransaction(conn -> userDAO.findByUsername(conn, username));
-
-        // OLD: Memory Map statt DAO mit Datenbank
-        //return userStore.get(username);
     }
 
     private String hashPassword(String password) {

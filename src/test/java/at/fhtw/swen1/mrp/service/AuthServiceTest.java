@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthServiceTest {
 
     @Test
-    void testGenerateToken_ShouldReturnNonNullToken() {
+    void generateTokenTest_ShouldReturnNonNullToken() {
         AuthService authService = new AuthService();
         String token = authService.generateToken("testuser");
 
@@ -20,7 +20,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testValidateToken_ValidToken_ShouldReturnTrue() {
+    void validateTokenTest_ValidToken_ShouldReturnTrue() {
         AuthService authService = new AuthService();
         String token = authService.generateToken("testuser");
 
@@ -28,7 +28,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testValidateToken_InvalidToken_ShouldReturnFalse() {
+    void validateTokenTest_InvalidToken_ShouldReturnFalse() {
         AuthService authService = new AuthService();
 
         assertFalse(authService.validateToken("invalid-token"));
@@ -36,7 +36,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testInvalidateToken_ShouldRemoveToken() {
+    void invalidateTokenTest_ShouldRemoveToken() {
         AuthService authService = new AuthService();
         String token = authService.generateToken("testuser");
 
@@ -44,5 +44,23 @@ class AuthServiceTest {
         authService.invalidateToken(token);
         assertFalse(authService.validateToken(token));
     }
-}
 
+    @Test
+    void getUsernameFromTokenTest_ValidToken_ShouldReturnUsername() {
+        AuthService authService = new AuthService();
+        String token = authService.generateToken("testuser");
+
+        String username = authService.getUsernameFromToken(token);
+
+        assertEquals("testuser", username);
+    }
+
+    @Test
+    void getUsernameFromTokenTest_InvalidToken_ShouldReturnNull() {
+        AuthService authService = new AuthService();
+
+        String username = authService.getUsernameFromToken("invalid-token");
+
+        assertNull(username);
+    }
+}

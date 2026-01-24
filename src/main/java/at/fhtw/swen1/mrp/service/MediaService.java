@@ -8,14 +8,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class MediaService {
-    // OLD: Memory Map statt DAO mit Datenbank
-    //private static final Map<Long, Media> mediaStore = new ConcurrentHashMap<>();
-    //private static long mediaIdCounter = 1L;
 
     private final MediaDAO mediaDAO;
 
     public MediaService() {
         this.mediaDAO = new MediaDAO();
+    }
+
+    // Constructor für Tests
+    public MediaService(MediaDAO mediaDAO) {
+        this.mediaDAO = mediaDAO;
     }
 
     public Media createMedia(String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction, Long creatorId) {
@@ -32,29 +34,12 @@ public class MediaService {
 
             mediaDAO.save(conn, media);
             return media;
-
-            // OLD: Memory Map statt DAO mit Datenbank
-            //Media media = new Media();
-            //media.setId(mediaIdCounter++);
-            //media.setTitle(title);
-            //media.setDescription(description);
-            //media.setMediaType(mediaType);
-            //media.setReleaseYear(releaseYear);
-            //media.setGenres(genres);
-            //media.setAgeRestriction(ageRestriction);
-            //media.setCreatedAt(LocalDateTime.now());
-            //mediaStore.put(media.getId(), media);
-            //return media;
         });
     }
 
     public List<Media> getAllMedia() {
         return DatabaseConnection.executeInTransaction(mediaDAO::findAll);
-
-        // OLD: Memory Map statt DAO mit Datenbank
-        //return new ArrayList<>(mediaStore.values());
     }
-
 
     // Alle Parameter sind optional (null = kein Filter).
     public List<Media> searchMedia(String title, String genre, String mediaType,
@@ -72,13 +57,6 @@ public class MediaService {
             }
             return media;
         });
-
-        // OLD: Memory Map statt DAO mit Datenbank
-        //Media media = mediaStore.get(id);
-        //if (media == null) {
-        //    throw new IllegalArgumentException("Media nicht gefunden");
-        //}
-        //return media;
     }
 
     public Media updateMedia(Long id, String title, String description, String mediaType, Integer releaseYear, List<String> genres, String ageRestriction, Long userId) {
@@ -101,20 +79,6 @@ public class MediaService {
             media.setAgeRestriction(ageRestriction);
 
             mediaDAO.update(conn, media);
-
-            // OLD: Memory Map statt DAO mit Datenbank
-            //Media media = mediaStore.get(id);
-            //if (media == null) {
-            //    throw new IllegalArgumentException("Media nicht gefunden");
-            //}
-            //media.setTitle(title);
-            //media.setDescription(description);
-            //media.setMediaType(mediaType);
-            //media.setReleaseYear(releaseYear);
-            //media.setGenres(genres);
-            //media.setAgeRestriction(ageRestriction);
-            //mediaStore.put(id, media);
-            //return media;
             return media;
         });
     }
@@ -133,11 +97,6 @@ public class MediaService {
 
             mediaDAO.delete(conn, id);
         });
-        // OLD: Memory Map statt DAO mit Datenbank
-        //if (!mediaStore.containsKey(id)) {
-        //    throw new IllegalArgumentException("Media nicht gefunden");
-        //}
-        //mediaStore.remove(id);
     }
 }
 
