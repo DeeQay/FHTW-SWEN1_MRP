@@ -12,6 +12,7 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,21 +41,21 @@ public class FavoriteController {
 
         // POST /api/media/{mediaId}/favorite - Als Favorit markieren
         if (path.matches("/api/media/\\d+/favorite") && "POST".equals(method)) {
-            String mediaId = extractPathSegment(path, 3);
+            String mediaId = extractPathSegment(path);
             handleAddFavorite(exchange, mediaId);
             return;
         }
 
         // DELETE /api/media/{mediaId}/favorite - Favorit entfernen
         if (path.matches("/api/media/\\d+/favorite") && "DELETE".equals(method)) {
-            String mediaId = extractPathSegment(path, 3);
+            String mediaId = extractPathSegment(path);
             handleRemoveFavorite(exchange, mediaId);
             return;
         }
 
         // GET /api/users/{username}/favorites - Favoriten-Liste
         if (path.matches("/api/users/[^/]+/favorites") && "GET".equals(method)) {
-            String username = extractPathSegment(path, 3);
+            String username = extractPathSegment(path);
             handleGetFavorites(exchange, username);
             return;
         }
@@ -121,9 +122,12 @@ public class FavoriteController {
             }
 
             List<Favorite> favorites = favoriteService.getFavoritesByUserId(user.getId());
-            List<FavoriteResponse> response = favorites.stream()
-                    .map(this::mapToResponse)
-                    .toList();
+
+            // Favoriten zu Response DTO konvertieren
+            List<FavoriteResponse> response = new ArrayList<>();
+            for (Favorite fav : favorites) {
+                response.add(mapToResponse(fav));
+            }
 
             sendResponse(exchange, 200, JsonUtil.toJson(response));
 
@@ -173,9 +177,9 @@ public class FavoriteController {
         return authService.validateToken(token);
     }
 
-    private String extractPathSegment(String path, int index) {
+    private String extractPathSegment(String path) {
         String[] parts = path.split("/");
-        return parts[index];
+        return parts[3];
     }
 
     private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {

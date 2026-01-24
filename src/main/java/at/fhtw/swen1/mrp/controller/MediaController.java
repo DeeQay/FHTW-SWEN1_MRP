@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,10 +153,13 @@ public class MediaController {
                 mediaList = mediaService.getAllMedia();
             }
 
-            List<MediaResponse> responseList = mediaList.stream()
-                    .map(m -> new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
-                            m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(), m.getCreatorId(), m.getCreatedAt()))
-                    .collect(java.util.stream.Collectors.toList());
+            // Media zu Response DTOs konvertieren
+            List<MediaResponse> responseList = new ArrayList<>();
+            for (at.fhtw.swen1.mrp.entity.Media m : mediaList) {
+                responseList.add(new MediaResponse(m.getId(), m.getTitle(), m.getDescription(),
+                        m.getMediaType(), m.getReleaseYear(), m.getGenres(), m.getAgeRestriction(),
+                        m.getCreatorId(), m.getCreatedAt()));
+            }
 
             sendResponse(exchange, 200, JsonUtil.toJson(responseList));
         } catch (Exception e) {

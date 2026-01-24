@@ -5,31 +5,33 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
- * JSON Serialisierung und Deserialisierung
+ * Hilfsklasse für JSON Konvertierung
  */
 public class JsonUtil {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper;
 
     static {
-        // ObjectMapper konfigurieren
+        objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // Für formatiertes JSON
     }
 
+    // Object zu JSON String
     public static String toJson(Object object) {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (Exception e) {
-            throw new RuntimeException("Serialisierung des Objekts zu JSON fehlgeschlagen", e);
+            throw new RuntimeException("JSON Serialisierung fehlgeschlagen", e);
         }
     }
 
+    // JSON String zu Object
     public static <T> T fromJson(String json, Class<T> clazz) {
         try {
             return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
-            throw new RuntimeException("Deserialisierung von JSON zu Objekt fehlgeschlagen", e);
+            throw new RuntimeException("JSON Deserialisierung fehlgeschlagen", e);
         }
     }
 }

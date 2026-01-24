@@ -20,7 +20,7 @@ CREATE TABLE media (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    media_type VARCHAR(50), -- movie, series, book, etc.
+    media_type VARCHAR(50),
     release_year INTEGER,
     genres JSONB,
     age_restriction VARCHAR(10),

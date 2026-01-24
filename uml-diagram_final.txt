@@ -1,0 +1,398 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 40
+
+' Layout-Hinweis: Schichtenarchitektur von oben nach unten
+' Server -> Controller -> Service -> DAO -> Entity
+
+' ==================== ENTITIES ====================
+package "Entities" #LightBlue {
+    class User {
+        -id: Long
+        -username: String
+        -passwordHash: String
+        -email: String
+        -createdAt: LocalDateTime
+    }
+
+    class Media {
+        -id: Long
+        -title: String
+        -description: String
+        -mediaType: String
+        -releaseYear: Integer
+        -genres: List<String>
+        -ageRestriction: String
+        -creatorId: Long
+        -createdAt: LocalDateTime
+    }
+
+    class Rating {
+        -id: Long
+        -userId: Long
+        -mediaId: Long
+        -score: Integer
+        -comment: String
+        -isConfirmed: Boolean
+        -likeCount: Integer
+        -createdAt: LocalDateTime
+        -updatedAt: LocalDateTime
+    }
+
+    class Favorite {
+        -id: Long
+        -userId: Long
+        -mediaId: Long
+        -createdAt: LocalDateTime
+    }
+
+    class RatingLike {
+        -id: Long
+        -userId: Long
+        -ratingId: Long
+        -createdAt: LocalDateTime
+    }
+}
+
+' ==================== DATA ACCESS ====================
+package "Data Access (DAO)" #LightGreen {
+    class UserDAO {
+        +save(conn, user): void
+        +findByUsername(conn, username): User
+        +findById(conn, id): User
+        +update(conn, user): void
+        +findLeaderboard(conn, limit): List
+    }
+
+    class MediaDAO {
+        +save(conn, media): void
+        +findById(conn, id): Media
+        +findAll(conn): List<Media>
+        +update(conn, media): void
+        +delete(conn, id): void
+        +findWithFilters(conn, ...): List<Media>
+    }
+
+    class RatingDAO {
+        +save(conn, rating): void
+        +findById(conn, id): Rating
+        +findByMediaId(conn, mediaId): List<Rating>
+        +findByUserId(conn, userId): List<Rating>
+        +update(conn, rating): void
+        +delete(conn, id): void
+        +existsByUserAndMedia(conn, ...): boolean
+    }
+
+    class FavoriteDAO {
+        +save(conn, favorite): void
+        +deleteByUserAndMedia(conn, ...): void
+        +findByUserId(conn, userId): List<Favorite>
+        +existsByUserAndMedia(conn, ...): boolean
+    }
+
+    class RatingLikeDAO {
+        +save(conn, like): void
+        +existsByUserAndRating(conn, ...): boolean
+        +deleteByUserAndRating(conn, ...): void
+        +countByRatingId(conn, ratingId): int
+    }
+}
+
+' ==================== SERVICES ====================
+package "Business Logic (Services)" #LightYellow {
+    class UserService {
+        -userDAO: UserDAO
+        -ratingDAO: RatingDAO
+        -mediaDAO: MediaDAO
+        +registerUser(username, password, email): User
+        +loginUser(username, password): User
+        +getUserByUsername(username): User
+        +getUserStatistics(userId): UserStatisticsResponse
+        +getUserRatings(userId): List<Rating>
+        +getLeaderboard(limit): List
+        +updateUserProfile(username, email): User
+    }
+
+    class AuthService {
+        -tokenStore: Map<String, String>
+        +generateToken(username): String
+        +validateToken(token): boolean
+        +getUsernameFromToken(token): String
+        +invalidateToken(token): void
+    }
+
+    class MediaService {
+        -mediaDAO: MediaDAO
+        +createMedia(...): Media
+        +getAllMedia(): List<Media>
+        +searchMedia(...): List<Media>
+        +getMediaById(id): Media
+        +updateMedia(...): Media
+        +deleteMedia(id, userId): void
+    }
+
+    class RatingService {
+        -ratingDAO: RatingDAO
+        -ratingLikeDAO: RatingLikeDAO
+        +createRating(userId, mediaId, score, comment): Rating
+        +updateRating(ratingId, userId, score, comment): Rating
+        +deleteRating(ratingId, userId): void
+        +confirmComment(ratingId, userId): Rating
+        +calculateAverageRating(mediaId): Double
+        +getRatingsByMediaId(mediaId): List<Rating>
+        +getRatingsByMediaIdPublic(mediaId, userId): List<Rating>
+        +likeRating(ratingId, userId): Rating
+        +unlikeRating(ratingId, userId): Rating
+    }
+
+    class FavoriteService {
+        -favoriteDAO: FavoriteDAO
+        -mediaDAO: MediaDAO
+        +addFavorite(userId, mediaId): Favorite
+        +removeFavorite(userId, mediaId): void
+        +getFavoritesByUserId(userId): List<Favorite>
+        +isFavorite(userId, mediaId): boolean
+    }
+
+    class RecommendationService {
+        -ratingDAO: RatingDAO
+        -mediaDAO: MediaDAO
+        +getRecommendationsByGenre(userId, limit): List<Media>
+        +getRecommendationsByContent(userId, limit): List<Media>
+    }
+}
+
+' ==================== CONTROLLERS ====================
+package "HTTP Controllers" #LightCoral {
+    class AuthController {
+        -authService: AuthService
+        -userService: UserService
+        +handleRegister(exchange): void
+        +handleLogin(exchange): void
+    }
+
+    class UserController {
+        -userService: UserService
+        -authService: AuthService
+        -recommendationService: RecommendationService
+        +handleUser(exchange): void
+        +handleLeaderboard(exchange): void
+    }
+
+    class MediaController {
+        -mediaService: MediaService
+        -ratingService: RatingService
+        -authService: AuthService
+        -userService: UserService
+        +handleMedia(exchange): void
+    }
+
+    class RatingController {
+        -ratingService: RatingService
+        -authService: AuthService
+        -userService: UserService
+        +handleRating(exchange): void
+    }
+
+    class FavoriteController {
+        -favoriteService: FavoriteService
+        -authService: AuthService
+        -userService: UserService
+        +handleFavorite(exchange): void
+    }
+}
+
+' ==================== DTOs ====================
+package "DTOs" #Wheat {
+    package "Request" {
+        class RegisterRequest {
+            -username: String
+            -password: String
+            -email: String
+        }
+        class LoginRequest {
+            -username: String
+            -password: String
+        }
+        class MediaRequest {
+            -title: String
+            -description: String
+            -mediaType: String
+            -releaseYear: Integer
+            -genres: List<String>
+            -ageRestriction: String
+        }
+        class RatingRequest {
+            -score: Integer
+            -comment: String
+        }
+        class ProfileUpdateRequest {
+            -email: String
+        }
+    }
+
+    package "Response" {
+        class LoginResponse {
+            -token: String
+        }
+        class MediaResponse {
+            -id: Long
+            -title: String
+            -description: String
+            -mediaType: String
+            -releaseYear: Integer
+            -genres: List<String>
+            -ageRestriction: String
+            -creatorId: Long
+            -createdAt: LocalDateTime
+        }
+        class RatingResponse {
+            -id: Long
+            -userId: Long
+            -mediaId: Long
+            -score: Integer
+            -comment: String
+            -isConfirmed: Boolean
+            -likeCount: Integer
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+        }
+        class FavoriteResponse {
+            -id: Long
+            -userId: Long
+            -mediaId: Long
+            -createdAt: LocalDateTime
+        }
+        class UserProfileResponse {
+            -username: String
+            -email: String
+            -createdAt: LocalDateTime
+            -statistics: UserStatisticsResponse
+        }
+        class UserStatisticsResponse {
+            -totalRatings: int
+            -averageScore: Double
+            -favoriteGenre: String
+        }
+        class LeaderboardEntryResponse {
+            -rank: int
+            -username: String
+            -ratingCount: int
+        }
+        class MediaRatingsResponse {
+            -averageRating: Double
+            -totalRatings: int
+            -ratings: List<RatingResponse>
+        }
+    }
+}
+
+' ==================== SERVER ====================
+package "Server" #LightGray {
+    class Main {
+        +main(args): void
+    }
+
+    class HttpServer {
+        -authController: AuthController
+        -favoriteController: FavoriteController
+        -mediaController: MediaController
+        -ratingController: RatingController
+        -userController: UserController
+        +start(): void
+        +stop(): void
+    }
+}
+
+' ==================== UTILITIES ====================
+package "Utilities" #Lavender {
+    class DatabaseConnection {
+        +getConnection(): Connection
+        +executeInTransaction(operation): T
+        +executeInTransactionVoid(operation): void
+    }
+
+    class JsonUtil {
+        +toJson(object): String
+        +fromJson(json, clazz): T
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+
+' Layout: Schichten vertikal anordnen
+Server -[hidden]down- "HTTP Controllers"
+"HTTP Controllers" -[hidden]down- "Business Logic (Services)"
+"Business Logic (Services)" -[hidden]down- "Data Access (DAO)"
+"Data Access (DAO)" -[hidden]down- Entities
+
+' Entity Relationships
+Rating --> User : userId
+Rating --> Media : mediaId
+Favorite --> User : userId
+Favorite --> Media : mediaId
+RatingLike --> User : userId
+RatingLike --> Rating : ratingId
+
+' DAO -> Entity
+UserDAO ..> User : returns
+MediaDAO ..> Media : returns
+RatingDAO ..> Rating : returns
+FavoriteDAO ..> Favorite : returns
+RatingLikeDAO ..> RatingLike : returns
+
+' DAO -> DatabaseConnection
+UserDAO ..> DatabaseConnection : uses
+MediaDAO ..> DatabaseConnection : uses
+RatingDAO ..> DatabaseConnection : uses
+FavoriteDAO ..> DatabaseConnection : uses
+RatingLikeDAO ..> DatabaseConnection : uses
+
+' Service -> DAO
+UserService --> UserDAO
+UserService --> RatingDAO
+UserService --> MediaDAO
+MediaService --> MediaDAO
+RatingService --> RatingDAO
+RatingService --> RatingLikeDAO
+FavoriteService --> FavoriteDAO
+FavoriteService --> MediaDAO
+RecommendationService --> RatingDAO
+RecommendationService --> MediaDAO
+
+' Controller -> Service
+AuthController --> AuthService
+AuthController --> UserService
+UserController --> UserService
+UserController --> AuthService
+UserController --> RecommendationService
+MediaController --> MediaService
+MediaController --> RatingService
+MediaController --> AuthService
+MediaController --> UserService
+RatingController --> RatingService
+RatingController --> AuthService
+RatingController --> UserService
+FavoriteController --> FavoriteService
+FavoriteController --> AuthService
+FavoriteController --> UserService
+
+' Controller -> JsonUtil
+AuthController ..> JsonUtil
+UserController ..> JsonUtil
+MediaController ..> JsonUtil
+RatingController ..> JsonUtil
+FavoriteController ..> JsonUtil
+
+' Server -> Controller
+Main --> HttpServer
+HttpServer --> AuthController
+HttpServer --> UserController
+HttpServer --> MediaController
+HttpServer --> RatingController
+HttpServer --> FavoriteController
+
+@enduml

@@ -1,173 +1,306 @@
-# Entwicklungsprotokoll - Media Ratings Platform
-## Zwischenabgabe SWEN1
+# Development Report - Media Ratings Platform (MRP)
 
-## Projektbeschreibung
+**GitHub Repository:** https://github.com/DeeQay/FHTW-SWEN1_MRP
 
-Dieses Projekt implementiert einen REST-basierten HTTP-Server für eine Media Ratings Platform. Die Zwischenabgabe umfasst Benutzerregistrierung, Login mit Token-Authentifizierung und grundlegende CRUD-Operationen für Medieneinträge.
+**Student:** David  
+**Kennung:** if25b113  
+**Abgabe:** Final Submission (SWEN1, 3. Semester)
 
-## Technische Schritte und Architekturentscheidungen
+---
 
-### Architektur
+## 1. Architektur und technische Entscheidungen
 
-Das Projekt folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten:
+### 1.1 Schichtenarchitektur
 
-- Controller Layer: Verarbeitung der HTTP-Requests und Responses
-- Service Layer: Geschäftslogik und Validierung
-- Data Access Layer: Datenbankzugriff (vorbereitet für PostgreSQL)
-- Entity Layer: Domänenmodelle (User, Media, Rating)
+Das Projekt folgt einer klassischen 4-Schichten-Architektur:
 
-### HTTP-Server
+```
+┌─────────────────────────────────────────────────────┐
+│                   HTTP Controllers                   │
+│   AuthController, MediaController, RatingController  │
+│   FavoriteController, UserController                 │
+└──────────────────────────┬──────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────┐
+│                  Business Logic                      │
+│   AuthService, MediaService, RatingService           │
+│   FavoriteService, UserService, RecommendationService│
+└──────────────────────────┬──────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────┐
+│                Data Access (DAO)                     │
+│   UserDAO, MediaDAO, RatingDAO, FavoriteDAO          │
+│   RatingLikeDAO                                      │
+└──────────────────────────┬──────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────┐
+│                     Entities                         │
+│   User, Media, Rating, Favorite, RatingLike          │
+└─────────────────────────────────────────────────────┘
+```
 
-Technologie: Java SE HttpServer (com.sun.net.httpserver.HttpServer)
+**Begründung:** Ich habe mich für diese Architektur entschieden, weil sie die verschiedenen Aufgaben sauber trennt. Die Controller kümmern sich nur um HTTP, die Services um die eigentliche Logik, und die DAOs um den Datenbankzugriff. Das macht den Code übersichtlicher und leichter wartbar.
 
-Entscheidung: Der Java SE HttpServer erfüllt die Anforderung, keine Web-Frameworks wie Spring oder JSP zu verwenden. Er ist Teil der Java-Standardbibliothek und ermöglicht die Implementierung eines reinen HTTP-Servers.
+### 1.2 Technologie-Stack
 
-Implementierung: Der Server lauscht auf Port 8080 und nutzt einen Thread Pool für parallele Request-Verarbeitung.
+| Komponente | Technologie | Begründung |
+|------------|-------------|------------|
+| HTTP-Server | `com.sun.net.httpserver` | Kein Framework erlaubt (laut Spec) |
+| JSON | Jackson | Standard-Bibliothek für JSON |
+| Datenbank | PostgreSQL + JDBC | Gefordert in Specification |
+| Boilerplate | Lombok | Reduziert Code in Entities/DTOs |
+| Testing | JUnit 5 + Mockito | Standard für Java Unit Tests |
+| Build | Maven | Standard Build-Tool |
 
-### Authentifizierung
+### 1.3 Transaktionshandling
 
-Implementierung: Token-basierte Authentifizierung mit Bearer Token im Authorization-Header
+Alle Datenbankoperationen laufen in Transaktionen. Dafür habe ich in der `DatabaseConnection`-Klasse zwei Methoden implementiert:
 
-Funktionsweise: Nach erfolgreichem Login erhält der Benutzer einen Token (Format: "username-mrpToken"). Dieser Token wird bei allen geschützten Endpoints im Header "Authentication: Bearer <token>" mitgesendet und validiert.
+```java
+// Transaktion mit Rückgabewert
+public static <T> T executeInTransaction(Function<Connection, T> operation)
 
-Token-Speicherung: In-Memory Map im AuthService (ausreichend für Zwischenabgabe)
+// Transaktion ohne Rückgabewert
+public static void executeInTransactionVoid(TransactionConsumer operation)
+```
 
-### Passwort-Sicherheit
+**Ablauf:**
+1. Connection holen
+2. AutoCommit deaktivieren
+3. Operation ausführen
+4. Bei Erfolg: Commit
+5. Bei Fehler: Rollback
+6. Connection schließen
 
-Implementierung: SHA-256 Hashing vor Speicherung
+Das war auch so im Zoom-Meeting besprochen worden - alle schreibenden Operationen müssen in Transaktionen laufen.
 
-Die UserService Klasse hasht alle Passwörter mit SHA-256 vor der Weitergabe an die Datenschicht. Klartext-Speicherung wird verhindert.
+### 1.4 Token-basierte Authentifizierung
 
-### JSON-Verarbeitung
+Nach dem Login bekommt der User einen Token im Format `username-token-timestamp`. Den speichere ich im `AuthService` in einer ConcurrentHashMap. Bei allen geschützten Endpoints wird dann der `Authorization: Bearer <token>` Header geprüft.
 
-Bibliothek: Jackson ObjectMapper
+---
 
-Jackson wird für die Serialisierung und Deserialisierung von Java-Objekten zu JSON verwendet. Die DTOs nutzen Jackson-Annotationen für die korrekte Feldabbildung.
+## 2. SOLID-Prinzipien im Code
 
-### Routing
+### 2.1 Single Responsibility Principle (SRP)
 
-Implementierung: Manuelle Pfad-Analyse in den Controllern
+Jede Klasse hat genau eine Verantwortlichkeit:
 
-### SOLID-Prinzipien Nachweis
+**Beispiel 1: RatingService**
+```java
+public class RatingService {
+    // Nur Rating-bezogene Business-Logik
+    public Rating createRating(...) { ... }
+    public Rating updateRating(...) { ... }
+    public void deleteRating(...) { ... }
+    public Double calculateAverageRating(...) { ... }
+}
+```
 
-**Single Responsibility Principle (SRP):**
-- Jede Klasse hat genau eine Verantwortlichkeit
-- Controller: nur HTTP-Handling
-- Service: nur Business-Logik
-- DAO: nur Datenbankzugriff
-- Entity: nur Datenstrukturen
+**Beispiel 2: Trennung Controller/Service**
+- `RatingController`: Verarbeitet nur HTTP-Requests und -Responses
+- `RatingService`: Enthält nur die Geschäftslogik für Ratings
+- `RatingDAO`: Führt nur SQL-Operationen aus
 
-**Open/Closed Principle:**
-- DTOs erlauben Erweiterung ohne Entity-Änderung
-- Service-Layer kann erweitert werden ohne Controller-Änderung
+### 2.2 Dependency Inversion Principle (DIP)
 
-**Dependency Inversion Principle (teilweise):**
-- Controller hängen von Service-Klassen ab (nicht direkt von DAOs)
-- Layered Architecture ermöglicht Austausch der Implementierungen
+Die Services bekommen ihre Abhängigkeiten per Constructor Injection. Das macht sie testbar:
 
-**Hinweis für Final-Abgabe:** Service-Interfaces sollten noch implementiert werden für vollständige Dependency Inversion.
+**Beispiel: RatingService**
+```java
+public class RatingService {
+    private final RatingDAO ratingDAO;
+    private final RatingLikeDAO ratingLikeDAO;
 
-### Datenschicht
+    // Default Constructor für Produktion
+    public RatingService() {
+        this.ratingDAO = new RatingDAO();
+        this.ratingLikeDAO = new RatingLikeDAO();
+    }
 
-Status: DAO-Pattern mit Stub-Implementierungen
+    // Constructor Injection für Tests
+    public RatingService(RatingDAO ratingDAO, RatingLikeDAO ratingLikeDAO) {
+        this.ratingDAO = ratingDAO;
+        this.ratingLikeDAO = ratingLikeDAO;
+    }
+}
+```
 
-UserDAO und MediaDAO sind als Klassen vorhanden, werfen aber UnsupportedOperationException. Die Struktur ist vorbereitet für die spätere PostgreSQL-Integration mit Prepared Statements.
+**Beispiel: UserService**
+```java
+public UserService(UserDAO userDAO, RatingDAO ratingDAO, MediaDAO mediaDAO) {
+    this.userDAO = userDAO;
+    this.ratingDAO = ratingDAO;
+    this.mediaDAO = mediaDAO;
+}
+```
 
-  - Query-Parameter: `format` (basic|detailed), `includeEmail` (true|false)
-## Implementierte Komponenten
+In den Unit Tests kann ich dann einfach Mock-Objekte reingeben, statt mit der echten Datenbank zu arbeiten.
 
-### REST Endpoints
+---
 
-  - Query-Parameter: `type` (Medientyp-Filter), `year` (Jahresfilter), `limit` (Ergebnis-Limit)
-Benutzer:
-- POST /api/users/register - Registrierung neuer Benutzer
-- POST /api/users/login - Login und Token-Generierung
-- GET /api/users/{username}/profile - Profil-Abfrage (authentifiziert)
+## 3. Wichtige technische Implementierungsdetails
 
-Media:
-- POST /api/media - Neuen Medieneintrag erstellen (authentifiziert)
-- GET /api/media - Alle Medieneinträge abrufen (authentifiziert)
-- GET /api/media/{id} - Einzelnen Medieneintrag abrufen (authentifiziert)
-- PUT /api/media/{id} - Medieneintrag aktualisieren (authentifiziert)
-- DELETE /api/media/{id} - Medieneintrag löschen (authentifiziert)
+**Kommentar-Moderation:**
+Kommentare werden erst sichtbar, wenn der Autor sie bestätigt (`isConfirmed = true`). In der Methode `getRatingsByMediaIdPublic()` filtere ich unbestätigte Kommentare raus, außer es ist der eigene Kommentar.
 
-### Modellklassen
+**Ownership-Check:**
+Nur wer ein Media erstellt hat, darf es auch bearbeiten oder löschen. Der Check passiert im Service:
 
-- User: id, username, passwordHash, email, createdAt
-- Media: id, title, description, mediaType, releaseYear, genres, ageRestriction
-- Rating: id, userId, mediaId, stars, comment (Modellklasse vorhanden für spätere Implementierung)
+```java
+if (!media.getCreatorId().equals(userId)) {
+    throw new SecurityException("Nur der Creator darf dieses Media bearbeiten");
+}
+```
 
-### DTOs
+**Recommendation-Algorithmus:**
+1. **Genre-basiert:** Schaut welche Genres der User am besten bewertet hat (Top-3), und empfiehlt dann unbewertete Medien aus diesen Genres.
+2. **Content Similarity:** Sammelt Präferenzen aus gut bewerteten Medien (Score >= 3) und berechnet für jedes unbewertete Medium einen Similarity-Score basierend auf Genres, MediaType und AgeRestriction.
 
-Request: RegisterRequest, LoginRequest, MediaRequest
-Response: LoginResponse, UserProfileResponse, MediaResponse
+---
 
-## Unit Tests und Testabdeckung
+## 4. Unit-Test-Strategie
 
-### Implementierte Tests
+### 4.1 Übersicht
 
-JsonUtilTest: Testet JSON-Serialisierung und -Deserialisierung
-- Warum: Kritisch für korrekte API-Kommunikation
-- Abdeckung: Serialisierung von Objekten zu JSON und zurück
+| Test-Klasse | Anzahl Tests | Getestete Logik |
+|-------------|--------------|-----------------|
+| AuthServiceTest | 6 | Token-Generierung, Validierung, Invalidierung |
+| UserServiceTest | 4 | Statistiken, Rating History, Leaderboard |
+| MediaServiceTest | 3 | Media abrufen, Ownership-Prüfung |
+| RatingServiceTest | 4 | Average-Berechnung, Rating CRUD |
+| FavoriteServiceTest | 3 | Favoriten hinzufügen, entfernen, auflisten |
+| RecommendationServiceTest | 3 | Genre-Recommendations, Content-Similarity |
+| JsonUtilTest | 3 | JSON Serialisierung/Deserialisierung |
+| ApiIntegrationTest | 4 | HTTP-Endpoints (Register, Login, Media) |
+| **Gesamt** | **30** | |
 
-UserServiceHashTest: Testet Passwort-Hashing
-- Warum: Sicherheitsrelevant, Passwörter dürfen nicht im Klartext gespeichert werden
-- Abdeckung: SHA-256 Hash-Generierung und -Konsistenz
+### 5.2 Warum diese Tests?
 
-Entity-Tests (UserTest, MediaTest, RatingTest): Testen Getter, Setter und Builder
-- Warum: Validierung der Modellklassen-Funktionalität
-- Abdeckung: Objekterzeugung und Feldmanipulation
+**AuthServiceTest:** Die Token-Validierung muss funktionieren, sonst hat man ein Sicherheitsproblem. Deshalb teste ich hier alles rund um Token-Generierung und Validierung.
 
-AuthServiceTest: Testet Token-Generierung und -Validierung
-- Warum: Kern der Authentifizierung
-- Abdeckung: Token-Erzeugung, Speicherung und Validierung
+**RatingServiceTest:** Die Durchschnittsberechnung ist wichtig für die Plattform. Ich teste hier auch Edge Cases wie "keine Ratings vorhanden" oder null-Werte.
 
-### Integrationstests
+**RecommendationServiceTest:** Der Recommendation-Algorithmus ist relativ komplex. Die Tests stellen sicher, dass keine bereits bewerteten Medien empfohlen werden und der Similarity-Score richtig berechnet wird.
 
-Bereitgestellt: cURL-Skripte (curl_tests.sh, test-api.ps1) und Postman Collection
-- Demonstrieren alle implementierten Endpoints
-- Testen Authentication-Flow
-- Prüfen HTTP-Statuscodes
+**ApiIntegrationTest:** Laut Zoom-Meeting sollten wir auch Integrationstests haben, die wirklich HTTP-Requests gegen die API schicken. So wird der ganze Stack getestet (Controller -> Service -> DAO -> DB).
 
-## Aufgetretene Probleme und Lösungen
+### 5.3 Test-Ansatz
 
-### Problem: Routing ohne Framework
+- **Mocking:** DAOs werden mit Mockito gemockt, um Services isoliert zu testen
+- **Constructor Injection:** Ermöglicht einfaches Injizieren von Mock-Objekten
+- **Transaktionen:** Der `DatabaseConnection.executeInTransaction()` Wrapper wird in Unit Tests übersprungen, da echte DB-Verbindungen gemockt werden
 
-Herausforderung: Java SE HttpServer bietet kein automatisches Routing wie moderne Frameworks.
+---
 
-Lösung: Manuelle Implementierung der Pfad-Analyse in jedem Controller. Pfad-Parameter werden durch String-Split und Pattern-Matching extrahiert. Die Lösung ist funktional und erfüllt die Anforderungen der Zwischenabgabe.
+## 5. Herausforderungen und Lösungen
 
-### Problem: Token-Persistenz
+### 5.1 Routing ohne Framework
 
-Herausforderung: In-Memory Token-Speicherung geht bei Server-Neustart verloren.
+**Problem:** Der Java SE HttpServer hat kein automatisches Routing wie Spring. Man muss die Pfade selbst parsen.
 
-Lösung: Für die Zwischenabgabe akzeptabel. Die Architektur erlaubt späteren Austausch durch datenbankbasierte Lösung ohne Änderung der Controller.
+**Lösung:** Ich habe das Routing manuell mit RegEx-Matching in den Controllern implementiert:
 
-### Problem: Datenbankintegration
+```java
+if (path.matches("/api/media/\\d+/ratings")) {
+    handleGetMediaRatings(exchange, mediaId);
+} else if (path.matches("/api/media/\\d+")) {
+    handleGetMedia(exchange, mediaId);
+}
+```
 
-Herausforderung: Vollständige PostgreSQL-Integration ist umfangreich.
+### 5.2 Transaktionen
 
-Lösung: DAO-Stubs mit UnsupportedOperationException und TODO-Kommentaren zeigen die geplante Architektur. Die Controller und Services sind bereits auf die spätere Integration vorbereitet.
+**Problem:** Im Zoom-Meeting wurde gesagt, dass alle verändernden Operationen in Transaktionen laufen müssen.
 
-## Zeitaufwand
+**Lösung:** Habe einen zentralen `DatabaseConnection.executeInTransaction()` Wrapper geschrieben, der automatisch Commit/Rollback macht. Alle Services benutzen diesen Wrapper.
 
-| Bereich | Tätigkeit | Stunden | Details |
-|---------|-----------|---------|---------|
-| **Server** | HTTP Server Setup | 3h | Port-Konfiguration, Threading, Request-Handling |
-| **Controller** | User Controller | 2.5h | Register, Login, Profile Endpoints |
-| **Controller** | Media Controller | 2.5h | CRUD Endpoints, Routing-Logik |
-| **Service** | User Service | 2h | Password-Hashing, Validierung |
-| **Service** | Media Service | 2h | Business-Logik, Validierung |
-| **Auth** | Token-System | 3h | Token-Generierung, Speicherung, Validierung |
-| **Model** | Entities & DTOs | 2h | User, Media, Request/Response DTOs |
-| **DAO** | DAO Stubs | 1h | Interface-Design, Stub-Implementierung |
-| **Tests** | Unit Tests | 2h | Service Tests, Util Tests |
-| **Tests** | API Tests | 1h | curl-Skripte, Postman Collection |
-| **Doku** | README & Protocol | 2h | Dokumentation, OpenAPI Spec |
-| | **GESAMT** | **23h** | |
+### 5.3 Kommentar-Moderation
 
-## Git Repository
+**Problem:** Kommentare sollen erst nach Bestätigung sichtbar sein, aber der Autor muss seinen eigenen Kommentar trotzdem sehen können.
 
-Repository URL: https://github.com/DeeQay/FHTW-SWEN1_MRP
+**Lösung:** `getRatingsByMediaIdPublic()` filtert die Kommentare basierend auf `isConfirmed` und ob es der eigene User ist:
 
-Das Repository enthält den vollständigen Quellcode mit Maven-Konfiguration, Docker Compose Setup für PostgreSQL und allen Testskripten. Die Commit-History dokumentiert den Entwicklungsprozess chronologisch.
+```java
+if (!rating.getIsConfirmed() && !rating.getUserId().equals(currentUserId)) {
+    rating.setComment(null);
+}
+```
+
+### 5.4 SQL Injection Prevention
+
+**Problem:** SQL Injection muss verhindert werden (steht als Must-Have in der Checklist).
+
+**Lösung:** Ich verwende überall PreparedStatements in den DAOs:
+
+```java
+String sql = "SELECT * FROM users WHERE username = ?";
+PreparedStatement stmt = conn.prepareStatement(sql);
+stmt.setString(1, username);
+```
+
+---
+
+## 6. Zeitaufwand
+
+| Phase / Aufgabe | Geschätzte Zeit |
+|-----------------|-----------------|
+| **Intermediate Submission** | |
+| Projektsetup, Maven, Docker | 3h |
+| HTTP-Server Implementierung | 4h |
+| User Registration/Login | 3h |
+| Media CRUD | 4h |
+| PostgreSQL Integration | 4h |
+| Erste Unit Tests | 2h |
+| **Zwischensumme Intermediate** | **~20h** |
+| **Final Submission** | |
+| Rating-System (CRUD, Average) | 5h |
+| Like-System | 2h |
+| Favorites-System | 2h |
+| Ownership-Logic | 2h |
+| Search & Filter | 3h |
+| User Statistics & Profile | 2h |
+| Leaderboard | 1h |
+| Recommendation-System | 4h |
+| Kommentar-Moderation | 1h |
+| Unit Tests erweitern | 4h |
+| Integration Tests | 2h |
+| Dokumentation, Protokoll | 3h |
+| **Zwischensumme Final** | **~31h** |
+| **Gesamtaufwand** | **~51h** |
+
+---
+
+## 7. Lessons Learned
+
+### 7.1 Architektur zahlt sich aus
+
+Die Schichtentrennung von Anfang an hat sich echt ausgezahlt. Als ich von Intermediate zu Final erweitert habe, ging das relativ smooth. Neue Features wie Favorites und Likes konnte ich nach dem gleichen Muster implementieren: Entity -> DAO -> Service -> Controller.
+
+### 7.2 Transaktionen früh einplanen
+
+Die Entscheidung, Transaktionen zentral in `DatabaseConnection` zu kapseln, war eine gute Entscheidung. Alle Services nutzen den gleichen Wrapper, dadurch ist das Verhalten überall gleich.
+
+### 7.3 Constructor Injection für Testbarkeit
+
+Durch Constructor Injection in den Services kann ich in Unit Tests einfach Mocks reinwerfen, ohne den Produktionscode anzufassen. Das hätte ich von Anfang an konsequenter machen sollen.
+
+### 7.4 Manuelles Routing ist mühsam
+
+Ohne Framework ist das Routing schon etwas fehleranfällig. Eine zentrale Router-Klasse hätte die Controller wahrscheinlich vereinfacht. Für ein größeres Projekt würde ich mir trotz Einschränkung eine eigene kleine Routing-Lösung bauen.
+
+### 7.5 Integration Tests finden andere Bugs
+
+Die Integration Tests (ApiIntegrationTest) haben tatsächlich Bugs gefunden, die in den Unit Tests nicht aufgefallen sind. Z.B. falsche JSON-Serialisierung oder HTTP Status Codes, die nicht gepasst haben.
+
+---
+
+## 8. UML-Klassendiagramm
+
+Das vollständige UML-Diagramm ist in `uml-diagram_final.png` zu finden.
+
+Die wichtigsten Beziehungen:
+- Controller verwenden Services
+- Services verwenden DAOs
+- DAOs arbeiten mit Entities
+- Rating verweist auf User und Media, Favorite auch, RatingLike verweist auf User und Rating

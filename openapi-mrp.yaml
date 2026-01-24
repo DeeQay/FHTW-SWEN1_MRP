@@ -244,6 +244,20 @@ paths:
       responses:
         '201':
           description: Rating submitted
+  /media/{mediaId}/ratings:
+    get:
+      tags:
+      - Rating
+      summary: Get all ratings for media
+      parameters:
+      - in: path
+        name: mediaId
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: List of ratings with average
   /ratings/{ratingId}/like:
     post:
       tags:
@@ -258,6 +272,19 @@ paths:
       responses:
         '200':
           description: Rating liked
+    delete:
+      tags:
+      - Rating
+      summary: Unlike a rating
+      parameters:
+      - in: path
+        name: ratingId
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Like removed
   /media/{mediaId}/favorite:
     post:
       tags:

@@ -105,11 +105,12 @@ public class UserService {
 
             int totalRatings = ratings.size();
 
-            // average Score berechnen
-            double avgScore = ratings.stream()
-                    .mapToInt(Rating::getScore)
-                    .average()
-                    .orElse(0.0);
+            // Durchschnitt berechnen
+            int sum = 0;
+            for (Rating r : ratings) {
+                sum += r.getScore();
+            }
+            double avgScore = (double) sum / totalRatings;
 
             // Favorite Genre (meistbewertetes Genre)
             Map<String, Integer> genreCount = new HashMap<>();
@@ -123,10 +124,14 @@ public class UserService {
             }
 
             // Genre mit höchster Anzahl finden
-            String favoriteGenre = genreCount.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey)
-                    .orElse(null);
+            String favoriteGenre = null;
+            int maxCount = 0;
+            for (Map.Entry<String, Integer> entry : genreCount.entrySet()) { // entry = (Genre, Count)
+                if (entry.getValue() > maxCount) {
+                    maxCount = entry.getValue();
+                    favoriteGenre = entry.getKey();
+                }
+            }
 
             return new UserStatisticsResponse(totalRatings, avgScore, favoriteGenre);
         });

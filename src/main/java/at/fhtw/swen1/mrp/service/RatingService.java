@@ -104,10 +104,12 @@ public class RatingService {
             if (ratings.isEmpty()) {
                 return null;
             }
-            return ratings.stream()
-                    .mapToInt(Rating::getScore)
-                    .average()
-                    .orElse(0.0); // null wenn keine Ratings
+            // Durchschnitt berechnen
+            int sum = 0;
+            for (Rating r : ratings) {
+                sum += r.getScore();
+            }
+            return (double) sum / ratings.size();
         });
     }
 
@@ -138,11 +140,6 @@ public class RatingService {
 
             return ratings;
         });
-    }
-
-    // Rating History eines Users
-    public List<Rating> getRatingsByUserId(Long userId) {
-        return DatabaseConnection.executeInTransaction(conn -> ratingDAO.findByUserId(conn, userId));
     }
 
     // Rating liken (1 Like pro User pro Rating)

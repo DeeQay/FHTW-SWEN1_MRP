@@ -2,161 +2,105 @@
 
 **GitHub Repository:** https://github.com/DeeQay/FHTW-SWEN1_MRP
 
-Eine REST-API für die Verwaltung von Medien (Filme, Serien, Bücher) mit Bewertungssystem.
+Eine REST-API für Medien-Bewertungen mit Rating-System, Favoriten und Empfehlungen.
 
-## Überblick
+## Features
 
-Das Projekt implementiert eine Plattform, auf der Benutzer verschiedene Medien bewerten können. Die Anwendung nutzt einen selbst entwickelten HTTP-Server und kommuniziert über REST-Endpoints.
-
-## Architektur
-
-Das Projekt folgt einer klassischen Schichtenarchitektur:
-
-- **Controller Layer**: Verarbeitung von HTTP-Requests und Routing
-  - `AuthController` - Registrierung & Login
-  - `UserController` - User-Profile
-  - `MediaController` - Media CRUD Operations
-  
-- **Service Layer**: Business-Logik und Validierung
-  - `AuthService` - Token-Management
-  - `UserService` - User-Verwaltung (nutzt UserDAO)
-  - `MediaService` - Media-Verwaltung (nutzt MediaDAO)
-  
-- **DAO Layer**: Datenbankzugriff mit JDBC & PostgreSQL
-  - `UserDAO` - User CRUD Operations
-  - `MediaDAO` - Media CRUD Operations
-  
-- **Entity Layer**: Datenmodelle
-  - `User`, `Media`, `Rating`
-  
-- **DTO Layer**: Request/Response Objekte
-  - Request: `LoginRequest`, `RegisterRequest`, `MediaRequest`
-  - Response: `LoginResponse`, `MediaResponse`, `UserProfileResponse`
+- **User Management**: Registrierung, Login (Token-basiert)
+- **Media Management**: Erstellen, Bearbeiten, Löschen von Medien (nur als Owner)
+- **Rating-System**: 5-Sterne-Bewertungen mit Kommentaren
+- **Like-System**: Ratings können geliked werden
+- **Favorites**: Medien als Favoriten markieren
+- **Search & Filter**: Suche nach Titel, Genre, MediaType, Jahr, Altersfreigabe, Bewertung
+- **Sortierung**: Nach Titel, Jahr oder Bewertung
+- **User Profile**: Statistiken (Total Ratings, Average Score, Favorite Genre)
+- **Leaderboard**: Top-User nach Anzahl Ratings
+- **Recommendations**: Genre-basierte und Content-basierte Empfehlungen
 
 ## Technologien
 
-- **Java 21**
-- **PostgreSQL** (Datenbank)
-- **Jackson** (JSON Serialisierung)
-- **Lombok** (Boilerplate-Reduktion)
-- **JUnit 5** (Testing)
-- **Maven** (Build-Tool)
-- **com.sun.net.httpserver** (HTTP-Server)
+- **Java 21**, **PostgreSQL**, **Jackson**, **Lombok**, **JUnit 5**, **Mockito**, **Maven**
+- **com.sun.net.httpserver** (Custom HTTP-Server ohne Framework)
 
-## Installation & Setup
+## Setup
 
 ### Voraussetzungen
-- Java 21 oder höher
-- PostgreSQL 15+ installiert
+- Java 21+
 - Maven
-- pgAdmin (optional, für Datenbank-Management)
+- Docker & Docker Compose
 
-### 1. PostgreSQL Setup
+### Installation & Start
 
-**Siehe detaillierte Anleitung:** [DATABASE-SETUP.md](DATABASE-SETUP.md)
+1. **Starten Sie Docker und kompilieren Sie das Projekt:**
+   ```bash
+   docker-compose up -d
+   mvn clean compile
+   ```
 
-#### Schnellstart:
-1. PostgreSQL installieren
-2. pgAdmin öffnen
-3. Datenbank `mrp_db` erstellen
-4. Query Tool öffnen und `src/main/resources/schema.sql` ausführen
-
-**ODER** per Kommandozeile:
-```cmd
-setup-database.bat
-```
-
-### 2. Konfiguration anpassen
-
-Öffnen Sie `src/main/resources/application.properties`:
-```properties
-db.url=jdbc:postgresql://localhost:5432/mrp_db
-db.username=postgres
-db.password=IHR_POSTGRES_PASSWORT  # ← ÄNDERN!
-```
-
-### 3. Datenbankverbindung testen
-
-```cmd
-test-database.bat
-```
-
-### 4. Server starten
-
-**Windows:**
-```cmd
-start-server.bat
-```
-
-**Oder manuell:**
-```cmd
-mvn clean compile
-mvn exec:java
-```
+2. **Starten Sie den Server:**
+   ```bash
+   mvn exec:java
+   ```
 
 Server läuft auf: **http://localhost:8080**
 
-Der Server läuft dann auf Port 8080.
+**Datenbank-Credentials:**
+- Host: localhost:5432
+- Benutzer: mrp_user
+- Passwort: mrp_password
+- Datenbank: mrp_db
 
 ## API Endpoints
 
 ### Authentifizierung
-- `POST /auth/register` - Neuen Benutzer registrieren
-- `POST /auth/login` - Anmelden und Token erhalten
+- `POST /api/users/register` - User registrieren
+- `POST /api/users/login` - Login mit Token
 
-### Benutzer
-- `GET /users/{username}` - Benutzerprofil abrufen
-- `PUT /users/{username}` - Profil aktualisieren
+### Media
+- `GET /api/media` - Alle Medien (mit Filter & Sortierung)
+- `POST /api/media` - Medium erstellen
+- `GET /api/media/{id}` - Einzelnes Medium
+- `PUT /api/media/{id}` - Medium bearbeiten (nur Owner)
+- `DELETE /api/media/{id}` - Medium löschen (nur Owner)
 
-### Medien
-- `GET /media` - Alle Medien auflisten
-- `POST /media` - Neues Medium erstellen
-- `GET /media/{id}` - Einzelnes Medium abrufen
-- `PUT /media/{id}` - Medium aktualisieren
-- `DELETE /media/{id}` - Medium löschen
+### Ratings & Likes
+- `POST /api/media/{mediaId}/rate` - Rating erstellen
+- `PUT /api/ratings/{ratingId}` - Rating bearbeiten
+- `DELETE /api/ratings/{ratingId}` - Rating löschen
+- `POST /api/ratings/{ratingId}/confirm` - Kommentar bestätigen
+- `POST /api/ratings/{ratingId}/like` - Rating liken
+- `DELETE /api/ratings/{ratingId}/like` - Like entfernen
 
-Siehe `openapi-mrp.yaml` für die vollständige API-Spezifikation.
+### Favorites
+- `POST /api/media/{mediaId}/favorite` - Als Favorit markieren
+- `DELETE /api/media/{mediaId}/favorite` - Favorit entfernen
+- `GET /api/users/{username}/favorites` - Favoriten-Liste
+
+### User Profile & Leaderboard
+- `GET /api/users/{username}/profile` - Profil mit Statistiken
+- `PUT /api/users/{username}/profile` - Profil aktualisieren
+- `GET /api/users/{username}/ratings` - Rating History
+- `GET /api/users/{username}/recommendations` - Empfehlungen
+- `GET /api/leaderboard` - Top-User
+
+Vollständige Spezifikation: `openapi-mrp.yaml`
 
 ## Testing
 
-Unit Tests ausführen:
 ```bash
 mvn test
 ```
 
-Integration Tests mit curl:
-```bash
-./test-api.bat
-```
+**Postman:**
+- Postman öffnen
+- `postman_collection.json` importieren
+- Alle Endpoints testen
 
-## Projektstruktur
+## Architektur
 
-```
-src/
-├── main/
-│   ├── java/at/fhtw/swen1/mrp/
-│   │   ├── controller/     # REST-Controller
-│   │   ├── service/        # Business-Logik
-│   │   ├── dao/            # Datenbankzugriff
-│   │   ├── entity/         # Datenmodelle
-│   │   ├── dto/            # Request/Response DTOs
-│   │   ├── server/         # HTTP-Server
-│   │   └── util/           # Helper-Klassen
-│   └── resources/
-│       ├── schema.sql      # Datenbankschema
-│       └── application.properties
-└── test/                   # Unit Tests
-```
-
-## Design-Entscheidungen
-
-- **Custom HTTP-Server**: Selbst implementiert statt Spring/Javalin für besseres Verständnis
-- **SHA-256 Hashing**: Für Passwort-Sicherheit
-- **Token-basierte Auth**: Einfache Session-Verwaltung ohne JWT
-- **PreparedStatements**: Schutz vor SQL-Injection
+Klassische Schichtenarchitektur:
+- **Controller** (HTTP Routing) -> **Service** (Business Logic) -> **DAO** (Database) -> **PostgreSQL**
+- **Entities**: User, Media, Rating, RatingLike, Favorite
+- **DTOs**: Request/Response Objekte
 
 Details siehe `protocol.md`.
-
-## Status
-
-Projekt bereit für Zwischenabgabe.

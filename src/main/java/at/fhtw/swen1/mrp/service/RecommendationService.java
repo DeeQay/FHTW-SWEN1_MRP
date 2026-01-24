@@ -7,7 +7,6 @@ import at.fhtw.swen1.mrp.entity.Rating;
 import at.fhtw.swen1.mrp.util.DatabaseConnection;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class RecommendationService {
 
@@ -34,12 +33,13 @@ public class RecommendationService {
                 return Collections.emptyList();
             }
 
-            // Bewertete Media-IDs sammeln (zum Ausfiltern)
-            Set<Long> ratedMediaIds = userRatings.stream()
-                    .map(Rating::getMediaId)
-                    .collect(Collectors.toSet());
+            // IDs der bereits bewerteten Media sammeln
+            Set<Long> ratedMediaIds = new HashSet<>();
+            for (Rating r : userRatings) {
+                ratedMediaIds.add(r.getMediaId());
+            }
 
-            // Genres aus allen Ratings analysieren, gewichtet nach Score
+            // Genres aus Ratings sammeln (gewichtet nach Score)
             Map<String, Integer> genreScore = new HashMap<>();
             for (Rating rating : userRatings) {
                 Media media = mediaDAO.findById(conn, rating.getMediaId());
@@ -61,7 +61,7 @@ public class RecommendationService {
                 return Collections.emptyList();
             }
 
-            // Alle Media laden
+            // Alle Media laden und filtern
             List<Media> allMedia = mediaDAO.findAll(conn);
 
             // Filtern: Media mit Top-Genres, die noch nicht bewertet wurden
@@ -74,7 +74,7 @@ public class RecommendationService {
         });
     }
 
-    // Content Similarity: Matching von Genres, mediaType, ageRestriction
+    // Content-basierte Empfehlungen (Genre, MediaType, AgeRestriction Matching)
     public List<Media> getRecommendationsByContent(Long userId, int limit) {
         return DatabaseConnection.executeInTransaction(conn -> {
             List<Rating> userRatings = ratingDAO.findByUserId(conn, userId);
@@ -83,15 +83,19 @@ public class RecommendationService {
                 return Collections.emptyList();
             }
 
-            // Bewertete Media-IDs (zum Ausfiltern)
-            Set<Long> ratedMediaIds = userRatings.stream()
-                    .map(Rating::getMediaId)
-                    .collect(Collectors.toSet());
+            // IDs der bereits bewerteten Media
+            Set<Long> ratedMediaIds = new HashSet<>();
+            for (Rating r : userRatings) {
+                ratedMediaIds.add(r.getMediaId());
+            }
 
-            // Nur positiv bewertete Media analysieren (Score >= 3/5)
-            List<Rating> positiveRatings = userRatings.stream()
-                    .filter(r -> r.getScore() >= 3)
-                    .toList();
+            // Nur positiv bewertete Media analysieren (Score >= 3)
+            List<Rating> positiveRatings = new ArrayList<>();
+            for (Rating r : userRatings) {
+                if (r.getScore() >= 3) {
+                    positiveRatings.add(r);
+                }
+            }
 
             if (positiveRatings.isEmpty()) {
                 return Collections.emptyList();
