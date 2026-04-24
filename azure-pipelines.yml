@@ -5,6 +5,11 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+- script: |
+    docker compose up -d
+    sleep 15
+  displayName: 'Start Database for Tests'
+
 - task: Maven@3
   displayName: 'Build and Test with Maven'
   inputs:
